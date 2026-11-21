@@ -30,7 +30,7 @@
           </p>
           <div class="privacy-note">
             <span aria-hidden="true">◈</span>
-            <p><strong>Your quotes stay in this browser.</strong> Emporos has no server and never sees your wallet keys.</p>
+            <p><strong>Working testnet prototype.</strong> Demo quotes are generated locally; no supplier search or paid research is performed.</p>
           </div>
         </section>
 
@@ -78,6 +78,7 @@
             <div id="offer-list" class="offer-list"></div>
             <div id="global-status" class="status-banner" role="status" aria-live="polite" hidden></div>
             <div class="form-actions">
+              <button class="button button-secondary" id="load-demo" type="button">Use working demo</button>
               <button class="button button-secondary" id="add-offer" type="button">＋ Add another quote</button>
               <button class="button button-primary" type="submit">Compare quotes <span aria-hidden="true">→</span></button>
             </div>
@@ -104,17 +105,11 @@
           <div>
             <h2>Payment is direct and irreversible</h2>
             <p>
-              Emporos sends USDC to the wallet address you enter. Verify the supplier and
-              recipient through a separate trusted channel. Your wallet shows and approves
-              the final Celo transaction. A payment is not proof of shipment.
+              Emporos sends test-USDC on Celo Sepolia to the supplier wallet you enter.
+              Demo data is for testing only. Verify every recipient and never use real funds.
             </p>
           </div>
         </section>
-        <p class="service-note">
-          This public app is a static website. Supplier quotes and receipts remain in your browser.
-          It does not fetch supplier data or run paid research. The optional CLI remains available
-          from the <a href="https://github.com/Prosperlinho/emporos" target="_blank" rel="noreferrer">project repository</a>.
-        </p>
       </main>
 
       <footer>

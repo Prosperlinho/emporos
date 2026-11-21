@@ -85,6 +85,79 @@ function renumberOffers(): void {
   });
 }
 
+function setField(card: Element, name: string, value: string): void {
+  const element = card.querySelector<HTMLInputElement>(`[data-field="${name}"]`);
+  if (element) element.value = value;
+}
+
+function setCheckbox(card: Element, name: string, checked: boolean): void {
+  const element = card.querySelector<HTMLInputElement>(`[data-field="${name}"]`);
+  if (element) element.checked = checked;
+}
+
+function loadWorkingDemo(): void {
+  const item = document.querySelector<HTMLInputElement>('[name="item"]')!;
+  const quantity = document.querySelector<HTMLInputElement>('[name="quantity"]')!;
+  const budget = document.querySelector<HTMLInputElement>('[name="maxBudget"]')!;
+  const deadline = document.querySelector<HTMLInputElement>('[name="deadlineDays"]')!;
+  const deliveryArea = document.querySelector<HTMLInputElement>('[name="deliveryArea"]')!;
+
+  item.value = "25 kg bag of white rice";
+  quantity.value = "50";
+  budget.value = "750";
+  deadline.value = "4";
+  deliveryArea.value = "Accra";
+
+  offerList.replaceChildren();
+  const demoOffers = [
+    {
+      supplier: "Market Supply Co.",
+      id: "demo-market-1",
+      itemDescription: "25 kg bag of white rice",
+      availableQuantity: "50",
+      unitPrice: "13.20",
+      shippingFee: "30",
+      deliveryDays: "2",
+      reliability: "4.8",
+      sourceUrl: "https://example.com/demo/market-supply-rice",
+      walletAddress: "",
+      trackingInfo: "Test delivery ETA supplied",
+    },
+    {
+      supplier: "City Wholesale",
+      id: "demo-city-2",
+      itemDescription: "25 kg bag of white rice",
+      availableQuantity: "60",
+      unitPrice: "12.80",
+      shippingFee: "55",
+      deliveryDays: "5",
+      reliability: "4.5",
+      sourceUrl: "https://example.com/demo/city-wholesale-rice",
+      walletAddress: "",
+      trackingInfo: "Test order confirmation",
+    },
+  ];
+
+  for (const demo of demoOffers) {
+    addOfferCard();
+    const card = offerList.lastElementChild!;
+    setField(card, "supplier", demo.supplier);
+    setField(card, "id", demo.id);
+    setField(card, "itemDescription", demo.itemDescription);
+    setCheckbox(card, "itemMatches", true);
+    setField(card, "availableQuantity", demo.availableQuantity);
+    setField(card, "unitPrice", demo.unitPrice);
+    setField(card, "shippingFee", demo.shippingFee);
+    setField(card, "deliveryDays", demo.deliveryDays);
+    setField(card, "reliability", demo.reliability);
+    setField(card, "sourceUrl", demo.sourceUrl);
+    setField(card, "trackingInfo", demo.trackingInfo);
+  }
+  renumberOffers();
+  setStatus("Working demo loaded. Review the two example quotes, then compare.");
+  document.querySelector<HTMLElement>("#procurement-form")!.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function value(card: Element, name: string): string {
   const element = card.querySelector<HTMLInputElement>(`[data-field="${name}"]`);
   if (!element) throw new Error(`Missing supplier quote field: ${name}.`);
@@ -383,6 +456,7 @@ form.addEventListener("submit", (event) => {
 });
 
 document.querySelector<HTMLButtonElement>("#add-offer")!.addEventListener("click", addOfferCard);
+document.querySelector<HTMLButtonElement>("#load-demo")!.addEventListener("click", loadWorkingDemo);
 document.querySelector<HTMLButtonElement>("#download-report")!.addEventListener("click", () => {
   try {
     downloadReceipt();
