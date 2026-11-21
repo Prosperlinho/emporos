@@ -3,7 +3,6 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   root: "web",
-  base: "/emporos/",
   build: {
     outDir: "../site",
     emptyOutDir: true,

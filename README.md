@@ -15,7 +15,7 @@ The public web app is a separate, static, self-custody interface. Quote comparis
 - ERC-8021 attribution suffix on direct supplier transfers and ERC-8004 registration transactions. Missing/invalid attribution codes block these transactions.
 - A JSON decision log and Celoscan transaction link after a confirmed payment.
 - A VS Code MCP registration for `@celo/buy` in `.vscode/mcp.json`.
-- A static web UI deployable to GitHub Pages; quote information stays in the user's browser and payments require an injected Celo-compatible wallet.
+- A static web UI deployable to Vercel; quote information stays in the user's browser and payments require an injected Celo-compatible wallet.
 
 The supplier payment is an on-chain USDC transfer, not a card checkout or an order placed through a retailer. Only use it with suppliers who have confirmed they accept USDC at the wallet address you verify. An on-chain payment proves payment, not shipment or delivery. Tracking details are supplier-provided.
 
@@ -46,7 +46,7 @@ Run the web app locally with:
 npm run dev:web
 ```
 
-The development server prints a localhost URL. The public site is built with `npm run build:web` and deployed by `.github/workflows/deploy-pages.yml`. Before its first deployment, enable **Settings → Pages → Build and deployment → Source: GitHub Actions** in the GitHub repository. Once enabled and the workflow succeeds, the landing URL is `https://prosperlinho.github.io/emporos/` and the procurement tool is at `https://prosperlinho.github.io/emporos/app/`.
+The development server prints a localhost URL. To publish, import this GitHub repository into Vercel. The included `vercel.json` builds the static site into `site`; Vercel assigns the public domain, and the procurement tool is available at `/app/`.
 
 The web app never receives a private key. The user connects an injected wallet, enters the actual hackathon attribution code, reviews the supplier address and amount, types an exact approval phrase, and approves the Celo mainnet transaction in the wallet. Do not rely on supplier URLs or wallet addresses without independent verification.
 
@@ -108,8 +108,8 @@ Self Agent ID is a separate proof-of-human registry and requires the human opera
 ## Repo layout
 
 ```text
-.github/workflows/ci.yml    Typecheck/build test workflow
-.github/workflows/deploy-pages.yml  GitHub Pages deployment workflow
+.github/workflows/ci.yml            Typecheck/build test workflow
+vercel.json                         Static Vercel build configuration
 .vscode/mcp.json            VS Code Celo buy MCP configuration
 src/chain.ts                Tagged Celo transfers and ERC-8004 registration
 src/index.ts                Interactive procurement and approval flow
