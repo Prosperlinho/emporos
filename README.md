@@ -2,7 +2,7 @@
 
 Emporos is a cautious procurement agent for one concrete job: restocking small-shop inventory from supplier quotes. It compares stock, delivery time, operator-rated supplier reliability, total cost, and a hard budget; optionally pays once for a Celo `buy` review; asks for an exact, typed approval; and can send USDC directly to a supplier wallet on Celo mainnet. It writes a local decision and payment receipt.
 
-The public web app is a separate, static, self-custody interface. Quote comparison runs in the browser, and approved USDC transfers are signed by the connected browser wallet. It has no backend, does not fetch supplier data, and does not provide the paid `buy` research flow; use the local CLI for that.
+The public web app is a separate, static, self-custody interface. Quote comparison runs in the browser, and approved test-USDC transfers are signed by the connected browser wallet on Celo Sepolia Testnet. It has no backend, does not fetch supplier data, and does not provide the paid `buy` research flow; use the local CLI for that.
 
 ## What works in this starter
 
@@ -11,7 +11,7 @@ The public web app is a separate, static, self-custody interface. Quote comparis
 - Operator confirmation that each quoted item/SKU matches the requested item.
 - Exact USDC arithmetic and a shortlist that flags budget, stock, item-match, or deadline failures.
 - Optional paid Cencori review through the official `@celo/buy` CLI, capped at 0.01 USDC. Research defaults to Celo Sepolia sandbox.
-- Exact-text approval before a real supplier transfer. The app verifies Celo mainnet, USDC balance, CELO gas, and the request budget before sending.
+- Exact-text approval before a testnet supplier transfer. The app verifies Celo Sepolia Testnet, test-USDC balance, S-CELO gas, and the request budget before sending.
 - ERC-8021 attribution suffix on direct supplier transfers and ERC-8004 registration transactions. Missing/invalid attribution codes block these transactions.
 - A JSON decision log and Celoscan transaction link after a confirmed payment.
 - A VS Code MCP registration for `@celo/buy` in `.vscode/mcp.json`.

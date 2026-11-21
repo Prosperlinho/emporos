@@ -11,13 +11,15 @@ import {
   http,
   isAddress,
 } from "viem";
-import { celo } from "viem/chains";
+import { celoSepolia } from "viem/chains";
 import { compareOffers, formatUsdc, validateOffer, validateRequest } from "../src/procurement.ts";
 import type { ComparedOffer, ProcurementRequest, PurchaseReceipt, SupplierOffer } from "../src/types.ts";
 import "./styles.css";
 
-const USDC_ADDRESS = "0xcebA9300f2b948710d2653dD7B07f33A8B32118C" as const;
-const CHAIN_ID = 42220;
+const USDC_ADDRESS = "0x01C5C0122039549AD1493B8220cABEdD739BC44E" as const;
+const CHAIN_ID = 11142220;
+const EXPLORER_URL = "https://celo-sepolia.blockscout.com";
+const RPC_URL = "https://forno.celo-sepolia.celo-testnet.org";
 const form = document.querySelector<HTMLFormElement>("#procurement-form")!;
 const offerList = document.querySelector<HTMLDivElement>("#offer-list")!;
 const offerTemplate = document.querySelector<HTMLTemplateElement>("#offer-template")!;
@@ -223,7 +225,7 @@ function downloadReceipt(): void {
 
 function openPaymentReview(offer: ComparedOffer): void {
   if (submittedOfferIds.has(offer.id)) {
-    setStatus("A transaction for this offer was already submitted. Check Celoscan before taking any further action.", true);
+    setStatus("A transaction for this offer was already submitted. Check Celo Sepolia Explorer before taking any further action.", true);
     return;
   }
   selectedOffer = offer;
@@ -289,12 +291,12 @@ async function submitDirectPayment(event: SubmitEvent): Promise<void> {
 
     const chainHex = await provider.request<string>({ method: "eth_chainId" });
     if (BigInt(chainHex) !== BigInt(CHAIN_ID)) {
-      throw new Error("Switch your wallet to Celo Mainnet (chain ID 42220). No payment was sent.");
+      throw new Error("Switch your wallet to Celo Sepolia Testnet (chain ID 11142220). No payment was sent.");
     }
 
     const publicClient = createPublicClient({
-      chain: celo,
-      transport: http("https://forno.celo.org"),
+      chain: celoSepolia,
+      transport: http(RPC_URL),
     });
     const balance = await publicClient.readContract({
       address: USDC_ADDRESS,
@@ -314,12 +316,12 @@ async function submitDirectPayment(event: SubmitEvent): Promise<void> {
     const taggedCalldata = concat([calldata, toDataSuffix(code)]);
     const walletClient = createWalletClient({
       account,
-      chain: celo,
+      chain: celoSepolia,
       transport: custom(provider),
     });
     const hash = await walletClient.sendTransaction({
       account,
-      chain: celo,
+      chain: celoSepolia,
       to: USDC_ADDRESS,
       data: taggedCalldata,
     });
@@ -346,16 +348,16 @@ async function submitDirectPayment(event: SubmitEvent): Promise<void> {
       }
       setStatus(`Payment confirmed. Transaction: ${hash}`);
       paymentDialog.close();
-      setStatus("Payment confirmed. View the transaction on Celoscan or download the decision log.");
+      setStatus("Payment confirmed. View the transaction on Celo Sepolia Explorer or download the decision log.");
       const link = document.createElement("a");
-      link.href = `https://celoscan.io/tx/${hash}`;
+      link.href = `${EXPLORER_URL}/tx/${hash}`;
       link.target = "_blank";
       link.rel = "noreferrer";
-      link.textContent = "View on Celoscan";
+      link.textContent = "View on Celo Sepolia Explorer";
       globalStatus.append(document.createTextNode(" "), link);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      setStatus(`Transaction was submitted (${hash}) but confirmation is unknown: ${reason}. Check Celoscan before retrying.`, true);
+      setStatus(`Transaction was submitted (${hash}) but confirmation is unknown: ${reason}. Check Celo Sepolia Explorer before retrying.`, true);
     }
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), true);
