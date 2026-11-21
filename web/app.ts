@@ -30,6 +30,8 @@ const paymentForm = document.querySelector<HTMLFormElement>("#payment-form")!;
 const paymentStatus = document.querySelector<HTMLParagraphElement>("#payment-status")!;
 const submitPayment = document.querySelector<HTMLButtonElement>("#submit-payment")!;
 const globalStatus = document.querySelector<HTMLDivElement>("#global-status")!;
+const agentRequest = document.querySelector<HTMLTextAreaElement>("#agent-request")!;
+const agentStatus = document.querySelector<HTMLDivElement>("#agent-status")!;
 
 interface Eip1193Provider {
   request<T = unknown>(args: { method: string; params?: readonly unknown[] }): Promise<T>;
@@ -93,6 +95,133 @@ function setField(card: Element, name: string, value: string): void {
 function setCheckbox(card: Element, name: string, checked: boolean): void {
   const element = card.querySelector<HTMLInputElement>(`[data-field="${name}"]`);
   if (element) element.checked = checked;
+}
+
+interface ParsedPurchaseRequest {
+  item: string;
+  quantity: number;
+  budget: number;
+  deadlineDays: number;
+  deliveryArea: string;
+}
+
+function parsePurchaseRequest(text: string): ParsedPurchaseRequest {
+  const quantityMatch = text.match(/\b(\d{1,6})\s*(?:bags?|boxes?|items?|units?|packets?|pieces?|kg)\b/i);
+  const quantityFallback = text.match(/\b(?:quantity|qty|stock)\s*(?:of)?\s*(\d{1,6})\b/i);
+  const budgetMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:usdc|usd)\b/i)
+    ?? text.match(/(?:budget|total|up to|max(?:imum)?)[^\d]*(\d+(?:\.\d+)?)\b/i)
+    ?? text.match(/\$\s*(\d+(?:\.\d+)?)\b/);
+  const deadlineMatch = text.match(/\b(\d{1,3})\s*(?:days?|business days?)\b/i);
+  const locationMatch = text.match(/\b(?:in|to|at)\s+([A-Za-z][A-Za-z\s.'-]{2,40}?)(?:[,.]|$)/i);
+
+  const knownItems: Record<string, string> = {
+    rice: "25 kg bag of white rice",
+    cement: "50 kg bag of cement",
+    water: "bottle of drinking water",
+    flour: "25 kg bag of flour",
+    oil: "25 litre container of cooking oil",
+  };
+  const lower = text.toLowerCase();
+  const knownItem = Object.keys(knownItems).find((word) => lower.includes(word));
+  const item = knownItem ? (knownItems[knownItem] ?? "Requested shop inventory item") : "Requested shop inventory item";
+
+  return {
+    item,
+    quantity: quantityMatch ? Number(quantityMatch[1]) : quantityFallback ? Number(quantityFallback[1]) : 0,
+    budget: budgetMatch ? Number(budgetMatch[1]) : 0,
+    deadlineDays: deadlineMatch ? Number(deadlineMatch[1]) : 0,
+    deliveryArea: locationMatch?.[1] ? locationMatch[1].trim() : "",
+  };
+}
+
+function loadAgentDemo(request: ParsedPurchaseRequest): void {
+  const item = document.querySelector<HTMLInputElement>('[name="item"]')!;
+  const quantity = document.querySelector<HTMLInputElement>('[name="quantity"]')!;
+  const budget = document.querySelector<HTMLInputElement>('[name="maxBudget"]')!;
+  const deadline = document.querySelector<HTMLInputElement>('[name="deadlineDays"]')!;
+  const deliveryArea = document.querySelector<HTMLInputElement>('[name="deliveryArea"]')!;
+
+  item.value = request.item;
+  quantity.value = String(request.quantity);
+  budget.value = String(request.budget);
+  deadline.value = String(request.deadlineDays);
+  deliveryArea.value = request.deliveryArea;
+
+  offerList.replaceChildren();
+  const quantityFactor = Math.max(request.quantity, 1);
+  const demoOffers = [
+    {
+      supplier: "Market Supply Co.",
+      id: "agent-market-1",
+      itemDescription: request.item,
+      availableQuantity: String(Math.max(quantityFactor, 50)),
+      unitPrice: "13.20",
+      shippingFee: "30",
+      deliveryDays: "2",
+      reliability: "4.8",
+      sourceUrl: "https://example.com/demo/market-supply-rice",
+    },
+    {
+      supplier: "City Wholesale",
+      id: "agent-city-2",
+      itemDescription: request.item,
+      availableQuantity: String(quantityFactor + 10),
+      unitPrice: "12.80",
+      shippingFee: "55",
+      deliveryDays: String(request.deadlineDays + 1),
+      reliability: "4.5",
+      sourceUrl: "https://example.com/demo/city-wholesale-rice",
+    },
+  ];
+
+  for (const demo of demoOffers) {
+    addOfferCard();
+    const card = offerList.lastElementChild!;
+    setField(card, "supplier", demo.supplier);
+    setField(card, "id", demo.id);
+    setField(card, "itemDescription", demo.itemDescription);
+    setCheckbox(card, "itemMatches", true);
+    setField(card, "availableQuantity", demo.availableQuantity);
+    setField(card, "unitPrice", demo.unitPrice);
+    setField(card, "shippingFee", demo.shippingFee);
+    setField(card, "deliveryDays", demo.deliveryDays);
+    setField(card, "reliability", demo.reliability);
+    setField(card, "sourceUrl", demo.sourceUrl);
+    setField(card, "trackingInfo", "Agent-generated test fulfillment note");
+  }
+  renumberOffers();
+}
+
+function runProcurementAgent(): void {
+  const text = agentRequest.value.trim();
+  if (!text) {
+    agentStatus.hidden = false;
+    agentStatus.className = "agent-status is-error";
+    agentStatus.textContent = "Describe the item, quantity, budget and deadline.";
+    return;
+  }
+  const request = parsePurchaseRequest(text);
+  const missing: string[] = [];
+  if (!request.quantity) missing.push("quantity");
+  if (!request.budget) missing.push("budget in USDC");
+  if (!request.deadlineDays) missing.push("delivery deadline");
+  if (!request.deliveryArea) missing.push("delivery location");
+  if (missing.length) {
+    agentStatus.hidden = false;
+    agentStatus.className = "agent-status is-error";
+    agentStatus.textContent = `Add the missing details: ${missing.join(", ")}.`;
+    return;
+  }
+
+  loadAgentDemo(request);
+  agentStatus.hidden = false;
+  agentStatus.className = "agent-status";
+  agentStatus.textContent = `Agent plan: source ${request.quantity} × ${request.item}; check stock, budget, delivery to ${request.deliveryArea}, and rank eligible suppliers.`;
+  form.requestSubmit();
+  const recommendation = state?.offers.find((offer) => offer.eligible);
+  if (recommendation) {
+    agentStatus.textContent += ` Recommendation: ${recommendation.supplier} at ${formatUsdc(recommendation.total)} USDC.`;
+  }
 }
 
 function loadWorkingDemo(): void {
@@ -457,6 +586,11 @@ form.addEventListener("submit", (event) => {
 
 document.querySelector<HTMLButtonElement>("#add-offer")!.addEventListener("click", addOfferCard);
 document.querySelector<HTMLButtonElement>("#load-demo")!.addEventListener("click", loadWorkingDemo);
+document.querySelector<HTMLButtonElement>("#run-agent")!.addEventListener("click", runProcurementAgent);
+document.querySelector<HTMLButtonElement>("#load-agent-example")!.addEventListener("click", () => {
+  agentRequest.value = "Restock 50 bags of 25 kg white rice, budget 750 USDC, delivery within 4 days in Accra";
+  agentRequest.focus();
+});
 document.querySelector<HTMLButtonElement>("#download-report")!.addEventListener("click", () => {
   try {
     downloadReceipt();

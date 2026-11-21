@@ -34,6 +34,25 @@
           </div>
         </section>
 
+        <section class="panel agent-panel" aria-labelledby="agent-heading">
+          <div class="section-heading">
+            <span class="step-number">AI</span>
+            <div>
+              <h2 id="agent-heading">Describe the purchase once</h2>
+              <p>The agent extracts the request, researches demo suppliers and compares the shortlist.</p>
+            </div>
+          </div>
+          <label class="field field-wide">
+            <span>Natural-language purchase request</span>
+            <textarea id="agent-request" rows="3" placeholder="Restock 50 bags of 25 kg white rice, budget 750 USDC, delivery within 4 days in Accra"></textarea>
+          </label>
+          <div class="agent-actions">
+            <button class="button button-primary" id="run-agent" type="button">Run procurement agent <span aria-hidden="true">→</span></button>
+            <button class="button button-secondary" id="load-agent-example" type="button">Use an example</button>
+          </div>
+          <div id="agent-status" class="agent-status" role="status" aria-live="polite" hidden></div>
+        </section>
+
         <form id="procurement-form" novalidate>
           <section class="panel" aria-labelledby="request-heading">
             <div class="section-heading">
@@ -78,8 +97,8 @@
             <div id="offer-list" class="offer-list"></div>
             <div id="global-status" class="status-banner" role="status" aria-live="polite" hidden></div>
             <div class="form-actions">
-              <button class="button button-secondary" id="load-demo" type="button">Use working demo</button>
-              <button class="button button-secondary" id="add-offer" type="button">＋ Add another quote</button>
+              <button class="button button-secondary" id="load-demo" type="button">Reset demo</button>
+              <button class="button button-secondary" id="add-offer" type="button">＋ Add quote manually</button>
               <button class="button button-primary" type="submit">Compare quotes <span aria-hidden="true">→</span></button>
             </div>
           </section>
@@ -105,8 +124,8 @@
           <div>
             <h2>Payment is direct and irreversible</h2>
             <p>
-              Emporos sends test-USDC on Celo Sepolia to the supplier wallet you enter.
-              Demo data is for testing only. Verify every recipient and never use real funds.
+              Emporos presents an agent recommendation only after it compares the facts.
+              Demo data is test-only; no real supplier order or purchase is placed.
             </p>
           </div>
         </section>
