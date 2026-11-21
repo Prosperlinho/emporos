@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "celo-buy": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--yes", "@celo/buy@0.8.7", "--sandbox", "mcp", "serve"]
+    }
+  }
+}

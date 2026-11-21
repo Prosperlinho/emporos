@@ -1,0 +1,27 @@
+{
+  "name": "emporos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A Celo procurement agent for small-business inventory restocking.",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "procure": "node --env-file-if-exists=.env dist/index.js procure",
+    "register": "node --env-file-if-exists=.env dist/index.js register",
+    "test": "npm run build && node --test dist/*.test.js"
+  },
+  "dependencies": {
+    "@celo/attribution-tags": "0.5.0",
+    "dotenv": "^17.2.3",
+    "viem": "^2.58.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}
