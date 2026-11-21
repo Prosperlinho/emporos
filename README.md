@@ -2,6 +2,8 @@
 
 Emporos is a cautious procurement agent for one concrete job: restocking small-shop inventory from supplier quotes. It compares stock, delivery time, operator-rated supplier reliability, total cost, and a hard budget; optionally pays once for a Celo `buy` review; asks for an exact, typed approval; and can send USDC directly to a supplier wallet on Celo mainnet. It writes a local decision and payment receipt.
 
+The public web app is a separate, static, self-custody interface. Quote comparison runs in the browser, and approved USDC transfers are signed by the connected browser wallet. It has no backend, does not fetch supplier data, and does not provide the paid `buy` research flow; use the local CLI for that.
+
 ## What works in this starter
 
 - Interactive request intake: item/SKU, quantity, max budget, delivery deadline, and delivery area.
@@ -13,6 +15,7 @@ Emporos is a cautious procurement agent for one concrete job: restocking small-s
 - ERC-8021 attribution suffix on direct supplier transfers and ERC-8004 registration transactions. Missing/invalid attribution codes block these transactions.
 - A JSON decision log and Celoscan transaction link after a confirmed payment.
 - A VS Code MCP registration for `@celo/buy` in `.vscode/mcp.json`.
+- A static web UI deployable to GitHub Pages; quote information stays in the user's browser and payments require an injected Celo-compatible wallet.
 
 The supplier payment is an on-chain USDC transfer, not a card checkout or an order placed through a retailer. Only use it with suppliers who have confirmed they accept USDC at the wallet address you verify. An on-chain payment proves payment, not shipment or delivery. Tracking details are supplier-provided.
 
@@ -35,6 +38,16 @@ npm test
 npm run build
 npm run procure
 ```
+
+Run the web app locally with:
+
+```powershell
+npm run dev:web
+```
+
+The development server prints a localhost URL. The public site is built with `npm run build:web` and deployed by `.github/workflows/deploy-pages.yml`. Before its first deployment, enable **Settings → Pages → Build and deployment → Source: GitHub Actions** in the GitHub repository. Once enabled and the workflow succeeds, the URL is `https://prosperlinho.github.io/emporos/`.
+
+The web app never receives a private key. The user connects an injected wallet, enters the actual hackathon attribution code, reviews the supplier address and amount, types an exact approval phrase, and approves the Celo mainnet transaction in the wallet. Do not rely on supplier URLs or wallet addresses without independent verification.
 
 In `.env`, set `ATTRIBUTION_CODE` to the actual code issued to Emporos by the hackathon organizers. A derived hostname code is not a substitute for an assigned hackathon code. Create a fresh, dedicated account in a wallet you trust, back up its recovery phrase offline, and export only that account's private key locally into `PROCUREMENT_PRIVATE_KEY` in this ignored `.env` file. Never paste the key into chat, screenshots, issue trackers, or a terminal command; do not reuse a personal wallet. Fund the corresponding address with a small amount of USDC and enough CELO for gas. This prototype does not connect to a hardware wallet or browser wallet.
 
@@ -89,17 +102,20 @@ Self Agent ID is a separate proof-of-human registry and requires the human opera
 - No automatic retry of paid `buy` calls or direct on-chain transactions after an ambiguous failure. Inspect `buy receipts --resolve` or the transaction before considering another attempt.
 - Vendor facts and the optional model response are untrusted input. Neither is allowed to authorize payment.
 - The buyer key and the `buy` key are separate. `.env` is ignored by git; keep backups securely and never publish it.
+- The public web app is static and self-custodial; it does not transmit quotes to a server. It does not currently run paid `buy` research.
 
 ## Repo layout
 
 ```text
 .github/workflows/ci.yml    Typecheck/build test workflow
+.github/workflows/deploy-pages.yml  GitHub Pages deployment workflow
 .vscode/mcp.json            VS Code Celo buy MCP configuration
 src/chain.ts                Tagged Celo transfers and ERC-8004 registration
 src/index.ts                Interactive procurement and approval flow
 src/procurement.ts          Validation, exact arithmetic, shortlist
 src/research.ts             Celo buy CLI quote/pay integration
 src/types.ts                Procurement and receipt types
+web/                        Public static procurement interface
 ```
 
 ## Hackathon checklist

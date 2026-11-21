@@ -52,6 +52,13 @@ test("requires HTTPS quote provenance before comparing an offer", () => {
   );
 });
 
+test("rejects malformed HTTPS quote URLs", () => {
+  assert.throws(
+    () => validateOffer(offer({ sourceUrl: "https://not a valid URL" })),
+    /valid HTTPS source URL/,
+  );
+});
+
 test("does not mark an unconfirmed item match as eligible", () => {
   const [result] = compareOffers(request, [offer({ itemMatches: false })]);
 

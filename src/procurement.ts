@@ -92,7 +92,13 @@ export function validateOffer(offer: SupplierOffer): void {
   if (!offer.id.trim() || !offer.supplier.trim() || !offer.itemDescription.trim()) {
     throw new Error("Every offer needs an ID, supplier name, and item description.");
   }
-  if (!/^https:\/\//i.test(offer.sourceUrl)) {
+  let sourceUrl: URL;
+  try {
+    sourceUrl = new URL(offer.sourceUrl);
+  } catch {
+    throw new Error(`${offer.id} must include a valid HTTPS source URL for the supplier quote.`);
+  }
+  if (sourceUrl.protocol !== "https:") {
     throw new Error(`${offer.id} must include an HTTPS source URL for the supplier quote.`);
   }
   parseMoney(offer.unitPrice, `${offer.id} unit price`);

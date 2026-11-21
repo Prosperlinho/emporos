@@ -31,7 +31,7 @@ export interface PurchaseReceipt {
   createdAt: string;
   request: ProcurementRequest;
   offers: Array<Omit<ComparedOffer, "total"> & { total: string }>;
-  paidResearch: {
+  paidResearch?: {
     network: "sandbox" | "mainnet";
     response?: string;
   };
