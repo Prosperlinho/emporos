@@ -6,215 +6,147 @@
     <meta name="theme-color" content="#f6f7f4" />
     <meta
       name="description"
-      content="Compare local supplier quotes and make deliberate, wallet-approved USDC purchases on Celo."
+      content="A straightforward way for local businesses to compare supplier quotes and make deliberate purchases on Celo."
     />
     <title>Emporos — Buy well, locally</title>
+    <link rel="stylesheet" href="./landing.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="topbar">
+    <div class="site-shell">
+      <header class="site-header">
         <a class="brand" href="./" aria-label="Emporos home">
           <span class="brand-mark" aria-hidden="true">E</span>
           <span>emporos</span>
         </a>
-        <div class="network-badge"><span aria-hidden="true"></span> Celo Mainnet</div>
+        <nav aria-label="Main navigation">
+          <a class="nav-link" href="#how-it-works">How it works</a>
+          <a class="nav-cta" href="./app/">Open the app <span aria-hidden="true">&rarr;</span></a>
+        </nav>
       </header>
 
       <main>
         <section class="hero">
-          <p class="eyebrow">PROCUREMENT, WITH YOU IN CONTROL</p>
-          <h1>Buy well.<br /><span>Keep business moving.</span></h1>
-          <p class="hero-copy">
-            Compare supplier quotes against your budget, stock needs and deadline.
-            When you’re ready, pay the supplier directly from your own wallet.
-          </p>
-          <div class="privacy-note">
-            <span aria-hidden="true">◈</span>
-            <p><strong>Your quotes stay in this browser.</strong> Emporos has no server and never sees your wallet keys.</p>
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-dot"></span> PROCUREMENT FOR LOCAL BUSINESS</p>
+            <h1>Stock up with<br /><span>confidence.</span></h1>
+            <p class="hero-description">
+              Compare supplier quotes against your budget, delivery needs and stock
+              requirements. You choose the supplier. You approve every payment.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="./app/">Start a purchase <span aria-hidden="true">&rarr;</span></a>
+              <a class="button button-quiet" href="#how-it-works">See how it works</a>
+            </div>
+            <div class="trust-row">
+              <span class="trust-icon" aria-hidden="true">✓</span>
+              <span>No sign-up. Your quotes stay in your browser.</span>
+            </div>
+          </div>
+
+          <aside class="preview-card" aria-label="Example supplier comparison">
+            <div class="preview-top">
+              <div>
+                <p class="preview-label">EXAMPLE COMPARISON</p>
+                <h2>Shop restock</h2>
+              </div>
+              <span class="preview-count">2 quotes</span>
+            </div>
+            <div class="preview-request">
+              <span>White rice · 25 kg bags</span>
+              <span>Budget <strong>250 USDC</strong></span>
+            </div>
+            <div class="preview-offer preview-offer-best">
+              <div class="offer-heading">
+                <div><strong>Market Supply Co.</strong><span>Delivery in 2 days</span></div>
+                <span class="best-badge">Fits request</span>
+              </div>
+              <div class="offer-price"><strong>232.00</strong><span>USDC total</span></div>
+              <div class="offer-bar"><span></span></div>
+            </div>
+            <div class="preview-offer">
+              <div class="offer-heading">
+                <div><strong>City Wholesale</strong><span>Delivery in 5 days</span></div>
+                <span class="over-badge">Over budget</span>
+              </div>
+              <div class="offer-price"><strong>264.00</strong><span>USDC total</span></div>
+              <div class="offer-bar offer-bar-muted"><span></span></div>
+            </div>
+            <div class="preview-total">
+              <span>Lowest eligible quote</span>
+              <strong>232.00 USDC</strong>
+            </div>
+            <p class="example-note">Illustrative example, not a live supplier quote.</p>
+          </aside>
+        </section>
+
+        <section class="value-strip" aria-label="Product benefits">
+          <article>
+            <span class="value-icon" aria-hidden="true">01</span>
+            <div><h2>See the full cost</h2><p>Compare the requested quantity, shipping, stock and delivery together.</p></div>
+          </article>
+          <article>
+            <span class="value-icon" aria-hidden="true">02</span>
+            <div><h2>Stay in control</h2><p>Nothing is paid automatically. Review the supplier and amount first.</p></div>
+          </article>
+          <article>
+            <span class="value-icon" aria-hidden="true">03</span>
+            <div><h2>Use your wallet</h2><p>Eligible supplier payments are signed in your own Celo-compatible wallet.</p></div>
+          </article>
+        </section>
+
+        <section class="steps-section" id="how-it-works">
+          <div class="section-intro">
+            <p class="eyebrow">A CLEARER WAY TO BUY</p>
+            <h2>From quote to decision,<br />without the guesswork.</h2>
+          </div>
+          <div class="steps-grid">
+            <article class="step-card">
+              <span class="step-index">01</span>
+              <h3>Set your limits</h3>
+              <p>Tell Emporos what you need, how many, your total budget and when it must arrive.</p>
+            </article>
+            <article class="step-card">
+              <span class="step-index">02</span>
+              <h3>Compare real quotes</h3>
+              <p>Add supplier quotes you have obtained. Emporos flags offers that miss your requirements.</p>
+            </article>
+            <article class="step-card">
+              <span class="step-index">03</span>
+              <h3>Approve or walk away</h3>
+              <p>Verify the supplier wallet, review the exact total and approve payment in your wallet.</p>
+            </article>
           </div>
         </section>
 
-        <form id="procurement-form" novalidate>
-          <section class="panel" aria-labelledby="request-heading">
-            <div class="section-heading">
-              <span class="step-number">01</span>
-              <div>
-                <h2 id="request-heading">What does your business need?</h2>
-                <p>Set the limit before comparing a single quote.</p>
-              </div>
-            </div>
-            <div class="field-grid request-grid">
-              <label class="field field-wide">
-                <span>Item or SKU</span>
-                <input name="item" required maxlength="120" placeholder="e.g. 25 kg bag of white rice" />
-              </label>
-              <label class="field">
-                <span>Quantity</span>
-                <input name="quantity" type="number" min="1" step="1" required placeholder="50" />
-              </label>
-              <label class="field">
-                <span>Maximum total · USDC</span>
-                <input name="maxBudget" inputmode="decimal" required placeholder="100.00" />
-              </label>
-              <label class="field">
-                <span>Arrive within · days</span>
-                <input name="deadlineDays" type="number" min="0" step="1" required placeholder="5" />
-              </label>
-              <label class="field field-wide">
-                <span>Delivery town or area</span>
-                <input name="deliveryArea" required maxlength="120" placeholder="e.g. Makola, Accra" />
-              </label>
-            </div>
-          </section>
-
-          <section class="panel" aria-labelledby="quotes-heading">
-            <div class="section-heading">
-              <span class="step-number">02</span>
-              <div>
-                <h2 id="quotes-heading">Add supplier quotes</h2>
-                <p>Enter details from quotes you obtained and verified yourself.</p>
-              </div>
-            </div>
-            <div id="offer-list" class="offer-list"></div>
-            <div id="global-status" class="status-banner" role="status" aria-live="polite" hidden></div>
-            <div class="form-actions">
-              <button class="button button-secondary" id="add-offer" type="button">＋ Add another quote</button>
-              <button class="button button-primary" type="submit">Compare quotes <span aria-hidden="true">→</span></button>
-            </div>
-          </section>
-        </form>
-
-        <section class="panel results-panel" id="results" aria-labelledby="results-heading" hidden>
-          <div class="section-heading">
-            <span class="step-number">03</span>
-            <div>
-              <h2 id="results-heading">Your shortlist</h2>
-              <p>Totals include the full requested quantity and shipping.</p>
-            </div>
-          </div>
-          <div id="shortlist" class="shortlist" aria-live="polite"></div>
-          <div class="results-actions">
-            <button class="button button-secondary" id="download-report" type="button">Download decision log</button>
-          </div>
-          <p class="report-note">Supplier availability, quality, reliability and delivery claims are not independently verified.</p>
-        </section>
-
-        <section class="safety-card" aria-label="Payment safety">
-          <div class="safety-icon" aria-hidden="true">!</div>
+        <section class="control-card">
+          <div class="control-symbol" aria-hidden="true">E</div>
           <div>
-            <h2>Payment is direct and irreversible</h2>
+            <p class="eyebrow">BUILT AROUND YOUR CONTROL</p>
+            <h2>Your wallet. Your decision.</h2>
             <p>
-              Emporos sends USDC to the wallet address you enter. Verify the supplier and
-              recipient through a separate trusted channel. Your wallet shows and approves
-              the final Celo transaction. A payment is not proof of shipment.
+              Emporos is a static website. It does not collect quote details or ask
+              for a private key. Your wallet shows the Celo transaction before you
+              approve it. On-chain transfers are irreversible, so verify the supplier
+              and recipient through a trusted channel.
             </p>
           </div>
         </section>
-        <p class="service-note">
-          This public app is a static website. Supplier quotes and receipts remain in your browser.
-          It does not fetch supplier data or run paid research. The optional CLI remains available
-          from the <a href="https://github.com/Prosperlinho/emporos" target="_blank" rel="noreferrer">project repository</a>.
-        </p>
+
+        <section class="final-cta">
+          <p class="eyebrow">READY WHEN YOU ARE</p>
+          <h2>Make your next restock<br />a more informed one.</h2>
+          <a class="button button-primary" href="./app/">Open Emporos <span aria-hidden="true">&rarr;</span></a>
+        </section>
       </main>
 
-      <footer>
-        <span>Built for small businesses on Celo</span>
-        <a href="https://github.com/Prosperlinho/emporos" target="_blank" rel="noreferrer">Open source ↗</a>
+      <footer class="site-footer">
+        <a class="brand footer-brand" href="./" aria-label="Emporos home">
+          <span class="brand-mark" aria-hidden="true">E</span>
+          <span>emporos</span>
+        </a>
+        <span>Procurement for local business, built on Celo.</span>
+        <a href="https://github.com/Prosperlinho/emporos" target="_blank" rel="noreferrer">Open source on GitHub &rarr;</a>
       </footer>
     </div>
-
-    <template id="offer-template">
-      <fieldset class="offer-card">
-        <legend class="offer-legend">
-          <span class="offer-index"></span>
-          <button class="remove-offer" type="button" aria-label="Remove this supplier quote">Remove</button>
-        </legend>
-        <div class="field-grid">
-          <label class="field">
-            <span>Supplier name</span>
-            <input data-field="supplier" required maxlength="120" placeholder="Supplier name" />
-          </label>
-          <label class="field">
-            <span>Offer reference</span>
-            <input data-field="id" maxlength="60" placeholder="Quote or order reference" />
-          </label>
-          <label class="field field-wide">
-            <span>Quoted item / specification</span>
-            <input data-field="itemDescription" required maxlength="160" placeholder="Brand, grade, size, SKU…" />
-          </label>
-          <label class="field check-field field-wide">
-            <input data-field="itemMatches" type="checkbox" />
-            <span>I confirmed this quote matches the requested item / specification</span>
-          </label>
-          <label class="field">
-            <span>Quantity available</span>
-            <input data-field="availableQuantity" type="number" min="0" step="1" required placeholder="50" />
-          </label>
-          <label class="field">
-            <span>Price per unit · USDC</span>
-            <input data-field="unitPrice" inputmode="decimal" required placeholder="12.50" />
-          </label>
-          <label class="field">
-            <span>Shipping · USDC</span>
-            <input data-field="shippingFee" inputmode="decimal" required placeholder="5.00" />
-          </label>
-          <label class="field">
-            <span>Delivery · days</span>
-            <input data-field="deliveryDays" type="number" min="0" step="1" required placeholder="3" />
-          </label>
-          <label class="field">
-            <span>Your reliability rating · 1–5</span>
-            <input data-field="reliability" type="number" min="1" max="5" step="0.1" required placeholder="4" />
-          </label>
-          <label class="field field-wide">
-            <span>Quote or supplier page · HTTPS</span>
-            <input data-field="sourceUrl" type="url" required placeholder="https://supplier.example/quote" />
-          </label>
-          <label class="field field-wide">
-            <span>Supplier USDC wallet · optional for comparison</span>
-            <input data-field="walletAddress" spellcheck="false" autocomplete="off" placeholder="0x…" />
-          </label>
-          <label class="field field-wide">
-            <span>Tracking or fulfillment note · optional</span>
-            <input data-field="trackingInfo" maxlength="240" placeholder="Supplier-provided delivery details" />
-          </label>
-        </div>
-      </fieldset>
-    </template>
-
-    <dialog id="payment-dialog" aria-labelledby="payment-title">
-      <form id="payment-form" class="dialog-card" novalidate>
-        <button id="close-dialog" class="dialog-close" type="button" aria-label="Close payment review">×</button>
-        <p class="eyebrow">FINAL REVIEW · CELO MAINNET</p>
-        <h2 id="payment-title">Pay this supplier?</h2>
-        <dl class="payment-details">
-          <div><dt>Supplier</dt><dd id="payment-supplier"></dd></div>
-          <div><dt>Recipient</dt><dd id="payment-recipient" class="address-value"></dd></div>
-          <div><dt>Total</dt><dd id="payment-total" class="amount-value"></dd></div>
-        </dl>
-        <label class="field">
-          <span>Assigned hackathon attribution code</span>
-          <input id="attribution-code" required autocomplete="off" spellcheck="false" placeholder="Use the code assigned to your project" />
-          <small>Required. The code is added to the transaction data; it is not saved by this app.</small>
-        </label>
-        <label class="field">
-          <span>Type the exact approval phrase</span>
-          <input id="payment-confirmation" required autocomplete="off" spellcheck="false" />
-          <small id="approval-hint"></small>
-        </label>
-        <label class="field check-field">
-          <input id="recipient-verified" type="checkbox" />
-          <span>I verified this recipient address with the supplier through a separate trusted channel.</span>
-        </label>
-        <p class="dialog-warning">
-          This transfer cannot be reversed. Confirm the recipient and amount in your wallet.
-          Celo gas is paid by your wallet; keep some CELO available.
-        </p>
-        <p id="payment-status" class="status-message" role="status" aria-live="polite"></p>
-        <button id="submit-payment" class="button button-danger" type="submit">Connect wallet &amp; pay</button>
-      </form>
-    </dialog>
-
-    <script type="module" src="./app.ts"></script>
   </body>
 </html>

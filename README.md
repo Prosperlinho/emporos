@@ -39,13 +39,14 @@ npm run build
 npm run procure
 ```
 
+The landing page is the site root. The procurement tool is available at `/app/`.
 Run the web app locally with:
 
 ```powershell
 npm run dev:web
 ```
 
-The development server prints a localhost URL. The public site is built with `npm run build:web` and deployed by `.github/workflows/deploy-pages.yml`. Before its first deployment, enable **Settings → Pages → Build and deployment → Source: GitHub Actions** in the GitHub repository. Once enabled and the workflow succeeds, the URL is `https://prosperlinho.github.io/emporos/`.
+The development server prints a localhost URL. The public site is built with `npm run build:web` and deployed by `.github/workflows/deploy-pages.yml`. Before its first deployment, enable **Settings → Pages → Build and deployment → Source: GitHub Actions** in the GitHub repository. Once enabled and the workflow succeeds, the landing URL is `https://prosperlinho.github.io/emporos/` and the procurement tool is at `https://prosperlinho.github.io/emporos/app/`.
 
 The web app never receives a private key. The user connects an injected wallet, enters the actual hackathon attribution code, reviews the supplier address and amount, types an exact approval phrase, and approves the Celo mainnet transaction in the wallet. Do not rely on supplier URLs or wallet addresses without independent verification.
 
