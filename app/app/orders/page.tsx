@@ -21,11 +21,11 @@ export default function OrdersPage() {
     <>
       <section className="page-head">
         <h1>Orders</h1>
-        <p>Everything the agent quoted, paid and you received.</p>
+        
       </section>
       {error && <div className="notice error">{error}</div>}
       {!business ? (
-        <Empty action={{ href: "/app/settings", label: "Set up business" }}>Set up your business to start ordering.</Empty>
+        <Empty action={{ href: "/app/settings", label: "Set up business" }}>Set up your business first.</Empty>
       ) : orders === null ? (
         <p className="muted">Loading…</p>
       ) : orders.length === 0 ? (

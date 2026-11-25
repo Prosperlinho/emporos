@@ -142,29 +142,29 @@ export default function AgentPage() {
   return (
     <>
       <section className="page-head">
-        <h1>What does the shop need?</h1>
-        <p>Say it how you&apos;d say it to your supplier. Emporos finds the best offer and pays within your rules.</p>
+        <h1>What do you need?</h1>
+        <p>Item, quantity, budget, place, deadline.</p>
       </section>
 
       {mode === "live" && !business && (
         <div className="notice warn" style={{ marginTop: 12 }}>
-          First set up your business and spending rules. <Link href="/app/settings">Go to Settings →</Link>
+          Set up your business first. <Link href="/app/settings">Settings →</Link>
         </div>
       )}
       {readiness.length > 0 && (
         <div className="notice warn" style={{ marginTop: 12 }}>
-          Live payments are off until you set: {readiness.join("; ")}. The agent can still find and rank suppliers.
+          Payments are off until configured: {readiness.join("; ")}.
         </div>
       )}
 
       <section className="panel accent">
         <form onSubmit={(e) => { e.preventDefault(); void understand(); }} className="stack">
           <label className="field">
-            <span>Your request</span>
+            <span>Request</span>
             <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={EXAMPLES[0]} maxLength={600} />
           </label>
           <button className="btn primary block" type="submit" disabled={parsing}>
-            {parsing ? "Reading your request…" : "Find the best supplier →"}
+            {parsing ? "Reading…" : "Find supplier →"}
           </button>
           <div className="chips">
             {EXAMPLES.map((example) => (
@@ -181,10 +181,10 @@ export default function AgentPage() {
       {fields && (
         <section className="panel">
           <div className="row between">
-            <h2>What I understood</h2>
+            <h2>Understood</h2>
             {parseSource && <span className="badge">{parseSource === "llm" ? "AI parsed" : "Rule parsed"}</span>}
           </div>
-          <p className="sub">Fix anything that is wrong, then search again.</p>
+          
           <form
             className="grid-2"
             onSubmit={(e) => {
@@ -279,8 +279,8 @@ export default function AgentPage() {
             <>
               <h2>Paid {formatNaira(order.amount)} to {order.chosen.supplierName}</h2>
               <p className="sub">
-                {order.paidBy === "agent" ? "The agent paid automatically within your rules." : "You approved this payment."}
-                {order.simulated ? " (Simulated in demo mode.)" : ""}
+                {order.paidBy === "agent" ? "Auto-paid within your rules." : "Approved by you."}
+                {order.simulated ? " Simulated." : ""}
               </p>
               <StepList steps={steps} simulated={order.simulated} />
               <div className="row" style={{ marginTop: 14 }}>
@@ -291,18 +291,18 @@ export default function AgentPage() {
           ) : running || order.status === "paying" ? (
             <>
               <h2>Paying {order.chosen.supplierName}…</h2>
-              <p className="sub">{order.paidBy === "owner" ? "Confirm each step in your wallet." : "The agent wallet is signing."}</p>
+              <p className="sub">{order.paidBy === "owner" ? "Confirm in your wallet." : "Agent wallet signing."}</p>
               <StepList steps={steps} simulated={mode === "demo"} />
             </>
           ) : ruleCheck.withinRules && countdown !== null ? (
             <>
-              <h2>Within your rules: auto-paying in {countdown}s</h2>
-              <p className="sub">The agent wallet will pay {formatNaira(order.amount)} in cNGN to {order.chosen.supplierName}.</p>
-              <button className="btn block" type="button" onClick={() => void cancelAutoPay()}>Stop, I&apos;ll decide</button>
+              <h2>Auto-paying in {countdown}s</h2>
+              <p className="sub">{formatNaira(order.amount)} cNGN to {order.chosen.supplierName}.</p>
+              <button className="btn block" type="button" onClick={() => void cancelAutoPay()}>Stop</button>
             </>
           ) : (
             <>
-              <h2>{ruleCheck.withinRules ? "Ready to pay" : "Your approval is needed"}</h2>
+              <h2>{ruleCheck.withinRules ? "Ready to pay" : "Needs your approval"}</h2>
               {ruleCheck.violations.length > 0 && (
                 <ul className="reasons">
                   {ruleCheck.violations.map((v) => <li key={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</li>)}
@@ -319,7 +319,7 @@ export default function AgentPage() {
                 >
                   Approve &amp; pay {formatNaira(order.amount)}
                 </button>
-                {mode === "live" && !ownerConnected && <p className="small muted">Connect your wallet (top right) to approve.</p>}
+                {mode === "live" && !ownerConnected && <p className="small muted">Connect your wallet to approve.</p>}
                 <Link className="btn block" href={`/app/orders/${order.id}`}>Save for later</Link>
               </div>
             </>

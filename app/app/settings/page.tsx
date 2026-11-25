@@ -145,7 +145,7 @@ export default function SettingsPage() {
     <>
       <section className="page-head">
         <h1>Settings</h1>
-        <p>Your business, the agent&apos;s limits, and its on-chain identity.</p>
+        
       </section>
 
       <section className="panel">
@@ -168,7 +168,7 @@ export default function SettingsPage() {
 
       <section className="panel">
         <h2>Spending rules</h2>
-        <p className="sub">Within these limits the agent pays on its own. Anything else waits for your one-tap approval.</p>
+        <p className="sub">Inside these, the agent pays. Outside, you approve.</p>
         <form className="stack" onSubmit={(e) => void saveRules(e)}>
           <div className="grid-2">
             <label className="field"><span>Max per order (₦)</span><input inputMode="numeric" value={rules.maxPerOrder} onChange={(e) => setRules({ ...rules, maxPerOrder: e.target.value.replace(/[₦,\s]/g, "") })} /></label>
@@ -213,15 +213,15 @@ export default function SettingsPage() {
                   To fund it, send cNGN (or USD₮ to swap) plus about 0.05 CELO for fees from your wallet to <span className="mono">{agent.address}</span>.
                   Its balance is a hard ceiling on what it can spend.
                 </p>
-                {!hasLocalKey(business!.id) && <div className="notice warn">This browser does not hold the session key, so it cannot auto-pay from here. Revoke and recreate it on this device.</div>}
+                {!hasLocalKey(business!.id) && <div className="notice warn">This device doesn't hold the agent key. Revoke and recreate it here.</div>}
               </>
             )}
             <button className="btn danger block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void revokeAgent()}>Revoke agent</button>
-            <p className="small muted" style={{ marginTop: 6 }}>Manage which suppliers it may pay on the Suppliers page.</p>
+            
           </>
         ) : (
           <>
-            <p className="sub">A separate wallet the agent signs with. It can only pay allowlisted suppliers, up to its cap, until it expires.</p>
+            <p className="sub">Pays only allowlisted suppliers, up to its cap, until it expires.</p>
             <div className="stack">
               <label className="field">
                 <span>Provider</span>
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                 <label className="field"><span>Spend cap (₦)</span><input inputMode="numeric" value={agentForm.spendCap} onChange={(e) => setAgentForm({ ...agentForm, spendCap: e.target.value.replace(/[₦,\s]/g, "") })} /></label>
                 <label className="field"><span>Expires in (days)</span><input inputMode="numeric" value={agentForm.days} onChange={(e) => setAgentForm({ ...agentForm, days: e.target.value.replace(/\D/g, "") })} /></label>
               </div>
-              <p className="small muted">The allowlist starts with your approved suppliers that have a wallet.</p>
+              
               <button className="btn primary block" disabled={busy || !business} onClick={() => void createAgent()}>Create agent wallet</button>
             </div>
           </>
@@ -252,7 +252,7 @@ export default function SettingsPage() {
           </dl>
         ) : (
           <>
-            <p className="sub">Publish the agent in the Celo Identity Registry so other apps and suppliers can look it up. Your wallet becomes its owner.</p>
+            <p className="sub">List the agent in Celo's Identity Registry. Your wallet owns it.</p>
             <button className="btn primary block" disabled={busy || !business} onClick={() => void register()}>Register agent on Celo</button>
             <div className="row" style={{ marginTop: 10 }}>
               <input placeholder="Already registered? Agent ID" inputMode="numeric" value={manualAgentId} onChange={(e) => setManualAgentId(e.target.value.replace(/\D/g, ""))} style={{ flex: 1 }} />

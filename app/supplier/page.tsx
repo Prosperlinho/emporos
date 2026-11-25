@@ -86,7 +86,7 @@ export default function SupplierPortal() {
       });
       setForm(emptyProduct);
       setEditing(null);
-      setMsg({ text: editing ? "Product updated." : "Product listed. Buyers' agents will see it in their next search." });
+      setMsg({ text: editing ? "Product updated." : "Product listed." });
       await load();
     } catch (e) {
       setMsg({ text: errorText(e), error: true });
@@ -107,8 +107,8 @@ export default function SupplierPortal() {
       </header>
       <main className="shell">
         <section className="page-head">
-          <h1>Sell to shops through Emporos</h1>
-          <p>List what you stock, your price and how fast you deliver. Buyers&apos; agents compare you automatically and pay you in cNGN.</p>
+          <h1>Sell to shops</h1>
+          <p>List stock, price and delivery. Get paid in cNGN.</p>
         </section>
 
         {needsLogin ? (
@@ -142,7 +142,7 @@ export default function SupplierPortal() {
                 <label className="field"><span>cNGN payout wallet (Celo)</span><input className="mono" value={profile.walletAddress} onChange={(e) => setProfile({ ...profile, walletAddress: e.target.value.trim() })} placeholder="0x…" /></label>
                 <label className="field"><span>Contact</span><input value={profile.contact} onChange={(e) => setProfile({ ...profile, contact: e.target.value })} placeholder="Phone or email for buyers" /></label>
                 <button className="btn primary block">Save profile</button>
-                <p className="small muted">Double-check your wallet. Payments to a wrong address cannot be reversed.</p>
+                <p className="small muted">Payments to a wrong address can't be reversed.</p>
               </form>
             </section>
 

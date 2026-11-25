@@ -1,52 +1,76 @@
 import Link from "next/link";
+import { HeroDemo } from "@/components/HeroDemo.tsx";
+import { Reveal } from "@/components/Reveal.tsx";
+
+const HEADLINE = ["Say", "what", "your", "shop", "needs."];
+const EXAMPLES = [
+  "50 bags of rice, under ₦2m, Lagos, 5 days",
+  "20 cartons of noodles, ₦300k, Ikeja, 3 days",
+  "30 jerrycans of groundnut oil, ₦1.5m, Abuja",
+  "100 bags of cement, max ₦900k, Port Harcourt",
+  "10 bags of sugar, ₦700k, Lagos, tomorrow",
+];
+const STEPS = [
+  { n: "01", title: "Ask", text: "Type it like a message to your supplier." },
+  { n: "02", title: "Compare", text: "Live quotes ranked on price, speed and stock, with reasons." },
+  { n: "03", title: "Pay", text: "Paid in cNGN within your limits. Over them, one tap." },
+];
 
 export default function Landing() {
   return (
     <div className="landing">
-      <header>
+      <div className="glow" aria-hidden="true" />
+      <header className="fade-in">
         <Link className="brand" href="/"><span className="brand-mark">E</span><span>emporos</span></Link>
         <nav className="row">
-          <Link href="/supplier" className="small">For suppliers</Link>
+          <Link href="/supplier" className="small nav-link">Suppliers</Link>
           <Link href="/login" className="btn small">Sign in</Link>
         </nav>
       </header>
 
       <main>
         <section className="hero">
-          <span className="eyebrow">Restocking agent for Nigerian shops · on Celo</span>
-          <h1>
-            Tell it what you need. <em>It buys it right.</em>
-          </h1>
-          <p className="lead">
-            Emporos finds the best supplier for your shop and pays them in naira stablecoin, automatically within your limits
-            or with one tap when it&apos;s over.
-          </p>
-          <div className="row">
-            <Link href="/app?demo=1" className="btn primary">Try the live demo →</Link>
-            <Link href="/login" className="btn">Start with your shop</Link>
+          <div className="hero-copy">
+            <span className="eyebrow fade-in" style={{ animationDelay: "80ms" }}>Restocking agent · Celo</span>
+            <h1>
+              {HEADLINE.map((word, i) => (
+                <span key={word} className="word" style={{ animationDelay: `${160 + i * 90}ms` }}>{word} </span>
+              ))}
+              <em className="word" style={{ animationDelay: `${160 + HEADLINE.length * 90 + 120}ms` }}>It buys it.</em>
+            </h1>
+            <p className="lead fade-in" style={{ animationDelay: "900ms" }}>
+              Best supplier, paid in cNGN, within your limits.
+            </p>
+            <div className="row fade-in" style={{ animationDelay: "1050ms" }}>
+              <Link href="/app?demo=1" className="btn primary">Live demo →</Link>
+              <Link href="/login" className="btn">Sign in</Link>
+            </div>
           </div>
-          <p className="example">“50 bags of rice, under ₦2m, Lagos, 5 days”</p>
+          <div className="hero-demo fade-in" style={{ animationDelay: "500ms" }}>
+            <HeroDemo />
+          </div>
         </section>
 
-        <section className="features">
-          <div className="feature">
-            <h3>1 · Say it plainly</h3>
-            <p>Type the request like a message to your supplier. The agent pulls out item, quantity, budget, place and deadline.</p>
+        <div className="marquee" aria-hidden="true">
+          <div className="marquee-track">
+            {[...EXAMPLES, ...EXAMPLES].map((example, i) => (
+              <span key={i}>“{example}”</span>
+            ))}
           </div>
-          <div className="feature">
-            <h3>2 · Best supplier, with reasons</h3>
-            <p>It compares live quotes on price, delivery time and stock, and tells you exactly why it picked one.</p>
-          </div>
-          <div className="feature">
-            <h3>3 · Paid in cNGN, within your rules</h3>
-            <p>Under your limits, the agent wallet pays the supplier. Over them, you approve with one tap. Every payment has a receipt and a Celoscan link.</p>
-          </div>
+        </div>
+
+        <section className="steps-grid">
+          {STEPS.map((step, i) => (
+            <Reveal key={step.n} delay={i * 120} className="feature">
+              <span className="feature-n">{step.n}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </Reveal>
+          ))}
         </section>
       </main>
 
-      <footer>
-        Emporos is a prototype. Payments on Celo mainnet are irreversible: verify supplier wallets and fund the agent only with what it may spend.
-      </footer>
+      <footer>Payments on Celo are final. Verify supplier wallets.</footer>
     </div>
   );
 }

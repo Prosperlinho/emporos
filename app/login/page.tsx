@@ -65,8 +65,8 @@ export default function LoginPage() {
         <h1 style={{ fontSize: 26, letterSpacing: -0.8 }}>Sign in</h1>
         {!supabaseConfigured ? (
           <>
-            <p className="muted">Accounts aren&apos;t set up on this deployment yet (Supabase is not configured). You can still try the full flow with demo data.</p>
-            <Link className="btn primary block" href="/app?demo=1">Open live demo</Link>
+            <p className="muted">Accounts aren&apos;t enabled yet. Try the demo.</p>
+            <Link className="btn primary block" href="/app?demo=1">Live demo</Link>
           </>
         ) : sent ? (
           <div className="notice ok">Check {email} for a sign-in link. You can close this tab.</div>
@@ -88,7 +88,7 @@ export default function LoginPage() {
         {error && <div className="notice error" style={{ marginTop: 12 }}>{error}</div>}
       </section>
       <p className="small muted" style={{ textAlign: "center" }}>
-        Just looking? <Link href="/app?demo=1">Try the live demo</Link> · Supplier? <Link href="/supplier">List your products</Link>
+        <Link href="/app?demo=1">Live demo</Link> · <Link href="/supplier">Suppliers</Link>
       </p>
     </main>
   );

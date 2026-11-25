@@ -68,7 +68,7 @@ export default function SuppliersPage() {
         ...(form.contact.trim() ? { contact: form.contact.trim() } : {}),
       });
       setForm({ name: "", location: "", walletAddress: "", currency: "cNGN", contact: "" });
-      setMessage({ text: "Supplier added. Confirm their wallet with them directly before approving." });
+      setMessage({ text: "Supplier added. Confirm their wallet before approving." });
       await load();
     } catch (e) {
       setMessage({ text: errorText(e), error: true });
@@ -82,7 +82,7 @@ export default function SuppliersPage() {
     <>
       <section className="page-head">
         <h1>Suppliers</h1>
-        <p>Who the agent can buy from. Approved suppliers can be paid automatically.</p>
+        <p>Approved suppliers can be auto-paid.</p>
       </section>
       {message && <div className={`notice ${message.error ? "error" : "ok"}`}>{message.text}</div>}
 
@@ -148,7 +148,7 @@ export default function SuppliersPage() {
             <label className="field"><span>Contact</span><input value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} placeholder="Phone or email" /></label>
           </div>
           <button className="btn primary block" type="submit">Add supplier</button>
-          <p className="small muted">New suppliers start unverified. Verification is set by an Emporos admin after checking the business.</p>
+          <p className="small muted">New suppliers start unverified.</p>
         </form>
       </section>
     </>

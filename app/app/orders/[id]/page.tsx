@@ -65,7 +65,7 @@ export default function ReceiptPage() {
 
       {message && <div className={`notice ${message.error ? "error" : "ok"}`}>{message.text}</div>}
       {o.error && o.status !== "paid" && o.status !== "delivered" && <div className="notice error" style={{ marginTop: 8 }}>{o.error}</div>}
-      {o.simulated && <div className="notice warn" style={{ marginTop: 8 }}>Demo order. Payment was simulated and nothing was sent on-chain.</div>}
+      {o.simulated && <div className="notice warn" style={{ marginTop: 8 }}>Demo order. Payment simulated.</div>}
 
       <section className="panel">
         <div className="row between">
@@ -109,11 +109,11 @@ export default function ReceiptPage() {
       </section>
 
       <section className="panel">
-        <h2>Why the agent chose {o.chosen.supplierName}</h2>
+        <h2>Why {o.chosen.supplierName}</h2>
         <ul className="reasons">{o.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
         <h3 className="small muted" style={{ margin: "14px 0 6px" }}>Rule check</h3>
         {o.ruleCheck.withinRules ? (
-          <p className="small" style={{ color: "var(--green)" }}>Within all spending rules, so the agent could pay automatically.</p>
+          <p className="small" style={{ color: "var(--green)" }}>Within all spending rules.</p>
         ) : (
           <ul className="reasons">{o.ruleCheck.violations.map((v) => <li key={v}>{v}</li>)}</ul>
         )}

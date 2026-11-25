@@ -57,7 +57,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <main className="shell">
         {mode === "demo" && (
           <div className="notice warn" style={{ marginTop: 12 }}>
-            <strong>Live demo.</strong> Suppliers are fictional and payments are simulated, so no wallet or funds are needed.{" "}
+            <strong>Demo.</strong> Sample suppliers, simulated payments.{" "}
             <button
               className="link-btn"
               type="button"
@@ -70,7 +70,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </button>
             {" · "}
             <button className="link-btn" type="button" onClick={() => { setMode("live"); router.push("/login"); }}>
-              Use real suppliers
+              Go live
             </button>
           </div>
         )}
