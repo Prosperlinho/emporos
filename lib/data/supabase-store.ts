@@ -75,19 +75,27 @@ function orderRow(o: Partial<Order>): Row {
   return row;
 }
 
-type Result<T> = { data: T | null; error: { message: string } | null };
+// Supabase results are read as `unknown` and narrowed here, so these helpers don't depend on
+// supabase-js's generic row types (which resolve to `never`/`null` without a generated schema).
+type Result = { data: unknown; error: { message: string } | null };
 
-/** Rows that must exist (select lists, .single() writes). */
-function check<T>(result: Result<T>): T {
+/** A select list. */
+function many(result: Result): Row[] {
   if (result.error) throw new Error(result.error.message);
-  if (result.data === null) throw new Error("No data returned.");
-  return result.data;
+  return Array.isArray(result.data) ? (result.data as Row[]) : [];
 }
 
-/** .maybeSingle() lookups, where "no row" is a valid answer. */
-function checkMaybe<T>(result: Result<T>): T | null {
+/** A .single() read or write: the row must exist. */
+function one(result: Result): Row {
   if (result.error) throw new Error(result.error.message);
-  return result.data;
+  if (!result.data || typeof result.data !== "object") throw new Error("No data returned.");
+  return result.data as Row;
+}
+
+/** A .maybeSingle() lookup, where "no row" is a valid answer. */
+function checkMaybe(result: Result): Row | null {
+  if (result.error) throw new Error(result.error.message);
+  return result.data && typeof result.data === "object" ? (result.data as Row) : null;
 }
 
 /** Deletes and other writes that return no rows. */
@@ -134,22 +142,22 @@ export function createSupabaseStore(): Store {
         rules: b.rules,
         agent: b.agent ?? null,
       };
-      const saved = check(await db.from("businesses").upsert(row, { onConflict: "owner_id" }).select("*").single());
+      const saved = one(await db.from("businesses").upsert(row, { onConflict: "owner_id" }).select("*").single());
       businessId = saved.id;
       return toBusiness(saved);
     },
     async listSuppliers() {
-      return check(await db.from("suppliers").select("*").order("name")).map(toSupplier);
+      return many(await db.from("suppliers").select("*").order("name")).map(toSupplier);
     },
     async listMySuppliers() {
       const uid = await userId(db);
-      return check(await db.from("suppliers").select("*").eq("owner_id", uid).order("name")).map(toSupplier);
+      return many(await db.from("suppliers").select("*").eq("owner_id", uid).order("name")).map(toSupplier);
     },
     async saveSupplier(s) {
       const fields = { name: s.name, location: s.location, wallet_address: s.walletAddress, currency: s.currency, contact: s.contact ?? null };
       const row = s.id
-        ? check(await db.from("suppliers").update(fields).eq("id", s.id).select("*").single())
-        : check(await db.from("suppliers").insert({ ...fields, owner_id: await userId(db) }).select("*").single());
+        ? one(await db.from("suppliers").update(fields).eq("id", s.id).select("*").single())
+        : one(await db.from("suppliers").insert({ ...fields, owner_id: await userId(db) }).select("*").single());
       return toSupplier(row);
     },
     async deleteSupplier(id) {
@@ -158,7 +166,7 @@ export function createSupabaseStore(): Store {
     async listProducts(supplierId) {
       let query = db.from("products").select("*").order("updated_at", { ascending: false });
       if (supplierId) query = query.eq("supplier_id", supplierId);
-      return check(await query).map(toProduct);
+      return many(await query).map(toProduct);
     },
     async saveProduct(p) {
       const fields = {
@@ -173,8 +181,8 @@ export function createSupabaseStore(): Store {
         updated_at: new Date().toISOString(),
       };
       const row = p.id
-        ? check(await db.from("products").update(fields).eq("id", p.id).select("*").single())
-        : check(await db.from("products").insert(fields).select("*").single());
+        ? one(await db.from("products").update(fields).eq("id", p.id).select("*").single())
+        : one(await db.from("products").insert(fields).select("*").single());
       return toProduct(row);
     },
     async deleteProduct(id) {
@@ -182,18 +190,18 @@ export function createSupabaseStore(): Store {
     },
     async listOrders() {
       const id = await requireBusinessId();
-      return check(await db.from("orders").select("*").eq("business_id", id).order("created_at", { ascending: false })).map(toOrder);
+      return many(await db.from("orders").select("*").eq("business_id", id).order("created_at", { ascending: false })).map(toOrder);
     },
     async getOrder(id) {
       const row = checkMaybe(await db.from("orders").select("*").eq("id", id).maybeSingle());
       return row ? toOrder(row) : null;
     },
     async createOrder(o) {
-      const row = check(await db.from("orders").insert({ ...orderRow(o), business_id: await requireBusinessId() }).select("*").single());
+      const row = one(await db.from("orders").insert({ ...orderRow(o), business_id: await requireBusinessId() }).select("*").single());
       return toOrder(row);
     },
     async updateOrder(id, patch) {
-      return toOrder(check(await db.from("orders").update(orderRow(patch)).eq("id", id).select("*").single()));
+      return toOrder(one(await db.from("orders").update(orderRow(patch)).eq("id", id).select("*").single()));
     },
   };
   return store;
