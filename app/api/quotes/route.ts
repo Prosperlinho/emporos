@@ -3,7 +3,8 @@ import { z } from "zod";
 import { isNaira } from "@/lib/money.ts";
 import { recommend } from "@/lib/ranking.ts";
 import { DEMO_PRODUCTS, DEMO_SUPPLIERS } from "@/lib/seed.ts";
-import { getServerSupabase } from "@/lib/supabase.ts";
+import { dbConfigured } from "@/lib/server/db.ts";
+import { listProducts, listSuppliers } from "@/lib/server/repo.ts";
 import type { Product, Supplier } from "@/lib/types.ts";
 
 export const runtime = "nodejs";
@@ -30,15 +31,12 @@ export async function POST(request: Request) {
   let suppliers: Supplier[] = DEMO_SUPPLIERS;
   let products: Product[] = DEMO_PRODUCTS;
   if (!demo) {
-    const db = getServerSupabase();
-    if (!db) return NextResponse.json({ error: "Supabase is not configured; use ?demo=1." }, { status: 503 });
-    const [s, p] = await Promise.all([db.from("suppliers").select("*"), db.from("products").select("*")]);
-    if (s.error || p.error) return NextResponse.json({ error: (s.error ?? p.error)!.message }, { status: 502 });
-    suppliers = s.data.map((r) => ({ id: r.id, name: r.name, location: r.location, walletAddress: r.wallet_address, currency: r.currency, verified: r.verified }));
-    products = p.data.map((r) => ({
-      id: r.id, supplierId: r.supplier_id, name: r.name, unit: r.unit, unitPrice: r.unit_price, deliveryFee: r.delivery_fee,
-      stock: r.stock, deliveryDays: r.delivery_days, deliveryAreas: r.delivery_areas ?? [], updatedAt: r.updated_at,
-    }));
+    if (!dbConfigured) return NextResponse.json({ error: "No database connected; use ?demo=1." }, { status: 503 });
+    try {
+      [suppliers, products] = await Promise.all([listSuppliers(), listProducts()]);
+    } catch {
+      return NextResponse.json({ error: "Could not load supplier quotes." }, { status: 502 });
+    }
   }
   return NextResponse.json(recommend(parsed.data, products, suppliers));
 }

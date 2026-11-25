@@ -9,7 +9,9 @@ import { addressUrl, shortAddress } from "@/lib/chain/config.ts";
 import type { Business, Product, Supplier, TokenSymbol } from "@/lib/types.ts";
 
 export default function SuppliersPage() {
-  const { store, business, setBusiness, mode } = useApp();
+  const { store, business, setBusiness, mode, user } = useApp();
+  // Demo users can try verification; in live mode only admins (ADMIN_WALLETS / ADMIN_EMAILS) can.
+  const canVerify = mode === "demo" || Boolean(user?.isAdmin);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
@@ -31,6 +33,16 @@ export default function SuppliersPage() {
     try {
       setBusiness(await store.saveBusiness(next));
       setMessage({ text });
+    } catch (e) {
+      setMessage({ text: errorText(e), error: true });
+    }
+  }
+
+  async function toggleVerified(supplier: Supplier) {
+    try {
+      await store.setSupplierVerified(supplier.id, !supplier.verified);
+      setMessage({ text: `${supplier.name} ${supplier.verified ? "unverified" : "verified"}.` });
+      await load();
     } catch (e) {
       setMessage({ text: errorText(e), error: true });
     }
@@ -117,6 +129,12 @@ export default function SuppliersPage() {
                     <label className="check small">
                       <input type="checkbox" checked={onAllowlist} onChange={() => void toggleAllowlist(s)} />
                       Agent may pay
+                    </label>
+                  )}
+                  {canVerify && (
+                    <label className="check small">
+                      <input type="checkbox" checked={s.verified} onChange={() => void toggleVerified(s)} />
+                      Verified (admin)
                     </label>
                   )}
                 </div>

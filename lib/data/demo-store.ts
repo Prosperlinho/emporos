@@ -69,6 +69,14 @@ export const demoStore: Store = {
       state.products = state.products.filter((p) => p.supplierId !== id);
     });
   },
+  async setSupplierVerified(id, verified) {
+    return mutate((state) => {
+      const supplier = state.suppliers.find((s) => s.id === id);
+      if (!supplier) throw new Error("Supplier not found.");
+      supplier.verified = verified;
+      return supplier;
+    });
+  },
   async listProducts(supplierId) {
     const products = load().products;
     return supplierId ? products.filter((p) => p.supplierId === supplierId) : products;

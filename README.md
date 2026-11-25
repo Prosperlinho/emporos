@@ -20,8 +20,8 @@ Every order has a receipt with the reasoning, FX rate and Celoscan links.
 | Business profile, spending rules (per order, daily/weekly cap, approved suppliers) | ✅ Built |
 | Supplier directory (name, wallet, currency, verified) | ✅ Built |
 | Supplier portal: products, prices, stock, delivery days, areas | ✅ Built (`/supplier`) |
-| Supabase backend with row-level security | ✅ Schema in `supabase/schema.sql` |
-| Seed with 3–5 real or friendly suppliers | ⏳ `supabase/seed.sql` has placeholders. Add real suppliers you have verified. |
+| Postgres on Vercel (Neon); every API route checks the signed-in user | ✅ Tables created automatically (`lib/server/db.ts`) |
+| Seed with 3–5 real or friendly suppliers | ⏳ Suppliers sign up at `/supplier`, or you add them on the Suppliers page; admins verify them |
 | Public quotes API for other agents (`POST /api/quotes`) | ✅ Built; x402 paywall not added |
 | LLM request parsing (any OpenAI-compatible API) + rule-based fallback | ✅ Built |
 | Ranking with reasons; auto-pay within rules; one-tap approval otherwise | ✅ Built |
@@ -29,7 +29,7 @@ Every order has a receipt with the reasoning, FX rate and Celoscan links.
 | cNGN supplier transfer, attribution-tagged | ✅ Built; needs `NEXT_PUBLIC_CNGN_ADDRESS` |
 | Errors: rejected tx, low balance, no gas, failed swap, unconfirmed tx (never auto-retried) | ✅ Built |
 | Order history (quoted → paid → delivered), receipts, FX rate, Celoscan links, **Mark delivered** | ✅ Built |
-| Login with wallet (Sign-In with Ethereum) or email magic link | ✅ Built (Supabase Auth) |
+| Login with wallet (Sign-In with Ethereum) or email code | ✅ Built (signed-cookie sessions; email needs a Resend key) |
 | Mobile-first UI, landing page, live demo | ✅ Built |
 
 ### What you must supply before real money moves
@@ -37,7 +37,7 @@ Every order has a receipt with the reasoning, FX rate and Celoscan links.
 1. **`NEXT_PUBLIC_ATTRIBUTION_CODE`**: the code assigned to this project. Live payments stay blocked until it is set.
 2. **`NEXT_PUBLIC_CNGN_ADDRESS`**: the issuer-verified cNGN contract. More than one token uses the cNGN ticker on Celo, so there is no default.
 3. **FX route**: `ZEROX_API_KEY` for the 0x fallback (check it actually routes USD₮→cNGN), or Textile FX's API docs so the adapter can be finished.
-4. **Real suppliers**: replace the placeholders in `supabase/seed.sql`. Collect wallet addresses directly from each supplier.
+4. **Real suppliers**: have them list themselves at `/supplier`, then verify them as an admin. Confirm each wallet address with the supplier directly.
 5. **Altana** (optional): its Celo SDK docs, to replace the browser session key with on-chain limits.
 
 ## Run it
@@ -51,13 +51,12 @@ npm test                            # parser, money, ranking and rules tests
 
 With no environment variables, `/app?demo=1` runs the full flow with fictional suppliers and simulated payments.
 
-### Supabase
+### Database (Vercel Postgres via Neon, free)
 
-1. Create a project, then run `supabase/schema.sql` and `supabase/seed.sql` in the SQL editor.
-2. Auth → Providers: enable **Email**, and **Web3 Wallet → Ethereum** for wallet sign-in.
-3. Auth → URL configuration: add your site URL and `https://<your-domain>/login`.
-4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-5. Mark suppliers verified from the SQL editor: `update suppliers set verified = true where id = '…';`. Users cannot set this field themselves.
+1. In Vercel: **Storage → Create Database → Neon** (free plan), then connect it to the emporos project. This adds `DATABASE_URL`.
+2. Redeploy. Tables are created on the first request; there is nothing to run by hand.
+3. Add your wallet to `ADMIN_WALLETS` (comma-separated) so you can mark suppliers verified from the Suppliers page.
+4. Optional: `RESEND_API_KEY` (+ `EMAIL_FROM` on a verified domain) turns on email sign-in codes.
 
 ### Deploy
 
@@ -83,6 +82,6 @@ Register the agent (Settings → Agent identity) from the deployed HTTPS site so
 app/                    Next.js routes: landing, /login, /app (agent, orders, suppliers, settings), /supplier, /api/*
 components/             App context, payment hook, shared UI
 lib/                    Domain logic (parse, ranking, rules, money), chain, FX, payments, agent wallet, data stores
-supabase/               schema.sql (tables + RLS), seed.sql (supplier placeholders)
+lib/server/             Postgres access, sessions, validated data layer (server only)
 src/                    Original CLI (USDC flow + @celo/buy research), built with tsconfig.cli.json
 ```

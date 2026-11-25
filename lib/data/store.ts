@@ -12,6 +12,8 @@ export interface Store {
   listMySuppliers(): Promise<Supplier[]>;
   saveSupplier(supplier: Omit<Supplier, "id" | "verified"> & { id?: string }): Promise<Supplier>;
   deleteSupplier(id: string): Promise<void>;
+  /** Admins only in live mode. */
+  setSupplierVerified(id: string, verified: boolean): Promise<Supplier>;
 
   listProducts(supplierId?: string): Promise<Product[]>;
   saveProduct(product: Omit<Product, "id" | "updatedAt"> & { id?: string }): Promise<Product>;
