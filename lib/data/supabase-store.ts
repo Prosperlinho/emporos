@@ -75,9 +75,24 @@ function orderRow(o: Partial<Order>): Row {
   return row;
 }
 
-function check<T>(result: { data: T; error: { message: string } | null }): T {
+type Result<T> = { data: T | null; error: { message: string } | null };
+
+/** Rows that must exist (select lists, .single() writes). */
+function check<T>(result: Result<T>): T {
+  if (result.error) throw new Error(result.error.message);
+  if (result.data === null) throw new Error("No data returned.");
+  return result.data;
+}
+
+/** .maybeSingle() lookups, where "no row" is a valid answer. */
+function checkMaybe<T>(result: Result<T>): T | null {
   if (result.error) throw new Error(result.error.message);
   return result.data;
+}
+
+/** Deletes and other writes that return no rows. */
+function checkOk(result: { error: { message: string } | null }): void {
+  if (result.error) throw new Error(result.error.message);
 }
 
 async function userId(db: SupabaseClient): Promise<string> {
@@ -101,7 +116,7 @@ export function createSupabaseStore(): Store {
     mode: "live",
     async getBusiness() {
       const uid = await userId(db);
-      const row = check(await db.from("businesses").select("*").eq("owner_id", uid).maybeSingle());
+      const row = checkMaybe(await db.from("businesses").select("*").eq("owner_id", uid).maybeSingle());
       if (!row) return null;
       businessId = row.id;
       return toBusiness(row);
@@ -138,7 +153,7 @@ export function createSupabaseStore(): Store {
       return toSupplier(row);
     },
     async deleteSupplier(id) {
-      check(await db.from("suppliers").delete().eq("id", id));
+      checkOk(await db.from("suppliers").delete().eq("id", id));
     },
     async listProducts(supplierId) {
       let query = db.from("products").select("*").order("updated_at", { ascending: false });
@@ -163,14 +178,14 @@ export function createSupabaseStore(): Store {
       return toProduct(row);
     },
     async deleteProduct(id) {
-      check(await db.from("products").delete().eq("id", id));
+      checkOk(await db.from("products").delete().eq("id", id));
     },
     async listOrders() {
       const id = await requireBusinessId();
       return check(await db.from("orders").select("*").eq("business_id", id).order("created_at", { ascending: false })).map(toOrder);
     },
     async getOrder(id) {
-      const row = check(await db.from("orders").select("*").eq("id", id).maybeSingle());
+      const row = checkMaybe(await db.from("orders").select("*").eq("id", id).maybeSingle());
       return row ? toOrder(row) : null;
     },
     async createOrder(o) {
