@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Db } from "../supabase.ts";
 import { getSupabase } from "../supabase.ts";
 import type { Business, Order, Product, Supplier } from "../types.ts";
 import type { Store } from "./store.ts";
@@ -95,7 +95,7 @@ function checkOk(result: { error: { message: string } | null }): void {
   if (result.error) throw new Error(result.error.message);
 }
 
-async function userId(db: SupabaseClient): Promise<string> {
+async function userId(db: Db): Promise<string> {
   const { data } = await db.auth.getUser();
   if (!data.user) throw new Error("Sign in to continue.");
   return data.user.id;
