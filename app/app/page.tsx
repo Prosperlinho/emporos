@@ -280,7 +280,7 @@ export default function AgentPage() {
               <h2>Paid {formatNaira(order.amount)} to {order.chosen.supplierName}</h2>
               <p className="sub">
                 {order.paidBy === "agent" ? "Auto-paid within your rules." : "Approved by you."}
-                {order.simulated ? " Simulated." : ""}
+                {order.simulated ? " (Sample, no real payment.)" : ""}
               </p>
               <StepList steps={steps} simulated={order.simulated} />
               <div className="row" style={{ marginTop: 14 }}>

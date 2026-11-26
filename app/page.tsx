@@ -42,8 +42,8 @@ export default function Landing() {
               Best supplier, paid in cNGN, within your limits.
             </p>
             <div className="row fade-in" style={{ animationDelay: "1050ms" }}>
-              <Link href="/app?demo=1" className="btn primary">Live demo →</Link>
-              <Link href="/login" className="btn">Sign in</Link>
+              <Link href="/login" className="btn primary">Get started →</Link>
+              <Link href="/app?demo=1" className="btn">Try with sample data</Link>
             </div>
           </div>
           <div className="hero-demo fade-in" style={{ animationDelay: "500ms" }}>

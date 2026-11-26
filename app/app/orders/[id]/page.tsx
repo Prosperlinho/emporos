@@ -65,7 +65,7 @@ export default function ReceiptPage() {
 
       {message && <div className={`notice ${message.error ? "error" : "ok"}`}>{message.text}</div>}
       {o.error && o.status !== "paid" && o.status !== "delivered" && <div className="notice error" style={{ marginTop: 8 }}>{o.error}</div>}
-      {o.simulated && <div className="notice warn" style={{ marginTop: 8 }}>Demo order. Payment simulated.</div>}
+      {o.simulated && <div className="notice warn" style={{ marginTop: 8 }}>Sample order. No real payment was made.</div>}
 
       <section className="panel">
         <div className="row between">

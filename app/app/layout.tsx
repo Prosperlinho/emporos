@@ -37,8 +37,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </Link>
         <div className="topbar-right">
           {mode === "demo" ? (
-            <span className="badge amber" title="Fictional suppliers; payments are simulated">
-              <span className="dot" /> Demo
+            <span className="badge amber" title="Example suppliers; no real payments">
+              <span className="dot" /> Sample
             </span>
           ) : (
             address && <Balances address={address} compact />
@@ -57,7 +57,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <main className="shell">
         {mode === "demo" && (
           <div className="notice warn" style={{ marginTop: 12 }}>
-            <strong>Demo.</strong> Sample suppliers, simulated payments.{" "}
+            <strong>Sample data.</strong> Example suppliers, no real payments.{" "}
             <button
               className="link-btn"
               type="button"
@@ -66,11 +66,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 window.location.href = "/app?demo=1";
               }}
             >
-              Reset demo
+              Start over
             </button>
             {" · "}
             <button className="link-btn" type="button" onClick={() => { setMode("live"); router.push("/login"); }}>
-              Go live
+              Use my shop
             </button>
           </div>
         )}

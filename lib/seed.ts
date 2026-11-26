@@ -7,10 +7,10 @@ import type { Business, Product, Supplier } from "./types.ts";
 const placeholder = (digit: string) => `0x${digit.repeat(40)}` as `0x${string}`;
 
 export const DEMO_SUPPLIERS: Supplier[] = [
-  { id: "demo-sup-ada", name: "Ada Grains (demo)", location: "Lagos", walletAddress: placeholder("1"), currency: "cNGN", verified: true, contact: "demo only" },
-  { id: "demo-sup-okon", name: "Okon Wholesale (demo)", location: "Lagos", walletAddress: placeholder("2"), currency: "cNGN", verified: true, contact: "demo only" },
-  { id: "demo-sup-sahel", name: "Sahel Foods (demo)", location: "Kano", walletAddress: placeholder("3"), currency: "cNGN", verified: false, contact: "demo only" },
-  { id: "demo-sup-delta", name: "Delta Provisions (demo)", location: "Port Harcourt", walletAddress: placeholder("4"), currency: "cNGN", verified: true, contact: "demo only" },
+  { id: "demo-sup-ada", name: "Ada Grains", location: "Lagos", walletAddress: placeholder("1"), currency: "cNGN", verified: true, contact: "demo only" },
+  { id: "demo-sup-okon", name: "Okon Wholesale", location: "Lagos", walletAddress: placeholder("2"), currency: "cNGN", verified: true, contact: "demo only" },
+  { id: "demo-sup-sahel", name: "Sahel Foods", location: "Kano", walletAddress: placeholder("3"), currency: "cNGN", verified: false, contact: "demo only" },
+  { id: "demo-sup-delta", name: "Delta Provisions", location: "Port Harcourt", walletAddress: placeholder("4"), currency: "cNGN", verified: true, contact: "demo only" },
 ];
 
 const now = "2026-11-22T00:00:00.000Z";
@@ -31,7 +31,7 @@ export const DEMO_PRODUCTS: Product[] = [
 export function demoBusiness(now = new Date()): Business {
   return {
     id: "demo-business",
-    name: "Mama Tunde Provisions (demo)",
+    name: "Mama Tunde Provisions",
     location: "Lagos",
     defaultCurrency: "cNGN",
     rules: { ...DEFAULT_RULES, maxPerOrder: "2500000", periodCap: "5000000", approvedSupplierIds: ["demo-sup-ada", "demo-sup-okon"] },

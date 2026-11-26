@@ -105,7 +105,7 @@ export default function SettingsPage() {
         ? { provider: "local-session-key" as const, address: `0x${"9".repeat(40)}` as `0x${string}`, spendCap: agentForm.spendCap, spent: "0", allowlist, createdAt: new Date().toISOString(), expiresAt }
         : await localSessionKeyProvider.create(business.id, { spendCap: agentForm.spendCap, allowlist, expiresAt });
       setBusiness(await store.saveBusiness({ ...business, agent: policy }));
-      say("agent", mode === "demo" ? "Demo agent wallet created." : "Agent wallet created. Fund it with only what it may spend, plus a little CELO for fees.");
+      say("agent", mode === "demo" ? "Sample agent wallet created." : "Agent wallet created. Fund it with only what it may spend, plus a little CELO for fees.");
     } catch (e) {
       say("agent", errorText(e), true);
     } finally {
@@ -179,7 +179,7 @@ export default function SettingsPage() {
     if (!business) return;
     setBusy(true);
     try {
-      if (mode === "demo") throw new Error("ERC-8004 registration is a real mainnet transaction, so it is off in the demo. Enter an existing ID below instead.");
+      if (mode === "demo") throw new Error("ERC-8004 registration is a real mainnet transaction, so it's off with sample data. Enter an existing ID below instead.");
       if (!ownerSigner || !publicClient) throw new Error("Connect your wallet to register.");
       const wallet = business.agent && !business.agent.revokedAt ? business.agent.address : ownerSigner.account.address;
       const uri = `${window.location.origin}/api/agent-registration?${new URLSearchParams({ wallet, name: `Emporos agent for ${business.name}` })}`;
@@ -257,7 +257,7 @@ export default function SettingsPage() {
           <>
             <dl className="kv" style={{ marginTop: 10 }}>
               <dt>Address</dt>
-              <dd className="mono">{mode === "demo" ? `${shortAddress(agent.address)} (simulated)` : <a href={addressUrl(agent.address)} target="_blank" rel="noreferrer">{shortAddress(agent.address)} ↗</a>}</dd>
+              <dd className="mono">{mode === "demo" ? `${shortAddress(agent.address)} (sample)` : <a href={addressUrl(agent.address)} target="_blank" rel="noreferrer">{shortAddress(agent.address)} ↗</a>}</dd>
               <dt>Type</dt><dd>{agent.provider === "altana" ? "Altana" : "Session key (this browser)"}</dd>
               <dt>Spend cap</dt><dd>{formatNaira(agent.spent)} of {formatNaira(agent.spendCap)} used</dd>
               <dt>Allowlist</dt><dd>{agent.allowlist.length} supplier wallet(s)</dd>

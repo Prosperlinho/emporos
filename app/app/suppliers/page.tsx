@@ -114,7 +114,7 @@ export default function SuppliersPage() {
               </div>
               <div className="small mono" style={{ marginTop: 4 }}>
                 {s.walletAddress ? (
-                  mode === "demo" ? `${shortAddress(s.walletAddress)} (placeholder)` : <a href={addressUrl(s.walletAddress)} target="_blank" rel="noreferrer">{shortAddress(s.walletAddress)} ↗</a>
+                  mode === "demo" ? `${shortAddress(s.walletAddress)} (sample)` : <a href={addressUrl(s.walletAddress)} target="_blank" rel="noreferrer">{shortAddress(s.walletAddress)} ↗</a>
                 ) : (
                   <span style={{ color: "var(--amber)" }}>No payout wallet yet</span>
                 )}

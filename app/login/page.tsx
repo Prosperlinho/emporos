@@ -96,8 +96,8 @@ export default function LoginPage() {
           <p className="muted">Loading…</p>
         ) : !configured ? (
           <>
-            <p className="muted">Accounts aren&apos;t enabled yet. Try the demo.</p>
-            <Link className="btn primary block" href="/app?demo=1">Live demo</Link>
+            <p className="muted">Accounts aren&apos;t enabled yet. Try it with sample data.</p>
+            <Link className="btn primary block" href="/app?demo=1">Try with sample data</Link>
           </>
         ) : (
           <div className="stack">
@@ -137,7 +137,7 @@ export default function LoginPage() {
         {error && <div className="notice error" style={{ marginTop: 12 }}>{error}</div>}
       </section>
       <p className="small muted" style={{ textAlign: "center" }}>
-        <Link href="/app?demo=1">Live demo</Link> · <Link href="/supplier">Suppliers</Link>
+        <Link href="/app?demo=1">Try with sample data</Link> · <Link href="/supplier">Suppliers</Link>
       </p>
     </main>
   );

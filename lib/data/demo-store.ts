@@ -3,7 +3,7 @@ import { DEMO_PRODUCTS, DEMO_SUPPLIERS, demoBusiness } from "../seed.ts";
 import type { Business, Order, Product, Supplier } from "../types.ts";
 import { newId, type Store } from "./store.ts";
 
-const KEY = "emporos.demo.v1";
+const KEY = "emporos.demo.v2";
 
 interface DemoState {
   business: Business;

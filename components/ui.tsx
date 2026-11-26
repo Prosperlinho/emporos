@@ -12,7 +12,7 @@ export function errorText(error: unknown): string {
 
 export function TxLink({ hash, simulated, label }: { hash?: string | undefined; simulated?: boolean | undefined; label?: string }) {
   if (!hash) return <span className="muted">—</span>;
-  if (simulated) return <span className="mono muted" title="Simulated in demo mode; not on-chain">{shortAddress(hash)} (simulated)</span>;
+  if (simulated) return <span className="mono muted" title="Sample data; not on-chain">{shortAddress(hash)} (sample)</span>;
   return (
     <a className="mono" href={txUrl(hash)} target="_blank" rel="noreferrer">
       {label ?? shortAddress(hash)} ↗
