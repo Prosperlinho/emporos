@@ -25,8 +25,19 @@ const LlmOutput = z.object({
   deadlineDays: z.coerce.number().int().min(0).max(365).optional(),
 });
 
+// Tolerate values pasted with quotes, whitespace/newlines or a "models/" prefix.
+const clean = (value: string | undefined) => (value ?? "").trim().replace(/^["'`]+|["'`]+$/g, "").trim();
+const llmModel = () => clean(process.env.LLM_MODEL).replace(/^models\//, "");
+const llmKey = () => clean(process.env.LLM_API_KEY);
+
 export function llmConfigured(): boolean {
-  return Boolean(process.env.LLM_API_KEY && process.env.LLM_MODEL);
+  return Boolean(llmKey() && llmModel());
+}
+
+/** Safe-to-show description of the configured model name (no key), for diagnosing setup. */
+export function llmModelHint(): string {
+  const model = llmModel();
+  return model ? `${model} (${model.length} chars${/[^\x21-\x7e]/.test(model) ? ", contains non-ASCII" : ""})` : "(none)";
 }
 
 /** Provider error text, trimmed. Never includes our key (it is only ever sent as a header). */
@@ -46,9 +57,9 @@ async function describeFailure(response: Response): Promise<string> {
 async function callLlm(base: string, text: string, jsonMode: boolean): Promise<Response> {
   return fetch(`${base}/chat/completions`, {
     method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${process.env.LLM_API_KEY}` },
+    headers: { "content-type": "application/json", authorization: `Bearer ${llmKey()}` },
     body: JSON.stringify({
-      model: process.env.LLM_MODEL,
+      model: llmModel(),
       temperature: 0,
       ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
       messages: [
@@ -96,6 +107,6 @@ export async function parseWithLlm(text: string): Promise<LlmParse> {
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     console.warn("LLM parse failed, using rule-based parser:", reason);
-    return { ...fallback, llmError: reason.slice(0, 400) };
+    return { ...fallback, llmError: `${reason.slice(0, 400)} [model: ${llmModelHint()}]` };
   }
 }
