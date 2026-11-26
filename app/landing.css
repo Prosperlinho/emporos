@@ -167,3 +167,9 @@
   .lx *, .lx *::before, .lx *::after { transition: none !important; animation: none !important; }
   .lx-track { scroll-behavior: auto; }
 }
+
+/* Logo colours */
+.lx-logo { display: inline-flex; color: var(--pill); }
+.lx-footer svg { color: #fff; flex: none; }
+.lx { --logo-accent: #5b6b7e; }
+.lx-footer { --logo-accent: #8a9bb0; }

@@ -1,5 +1,6 @@
 "use client";
 
+import { LogoMark } from "@/components/Logo.tsx";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -89,7 +90,7 @@ export default function LoginPage() {
 
   return (
     <main className="shell" style={{ maxWidth: 440, paddingTop: 40 }}>
-      <Link className="brand" href="/"><span className="brand-mark">E</span><span>emporos</span></Link>
+      <Link className="brand" href="/"><LogoMark size={26} /><span>emporos</span></Link>
       <section className="panel accent" style={{ marginTop: 24 }}>
         <h1 style={{ fontSize: 26, letterSpacing: -0.8 }}>Sign in</h1>
         {!ready ? (

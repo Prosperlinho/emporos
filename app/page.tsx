@@ -1,3 +1,4 @@
+import { LogoMark } from "@/components/Logo.tsx";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import { Hero } from "@/components/landing/Hero.tsx";
@@ -14,7 +15,7 @@ export default function Landing() {
       <Statement />
       <TwoSides />
       <footer className="lx-footer">
-        <span className="lx-mark">E</span>
+        <LogoMark size={28} />
         <span>Payments on Celo are final. Verify supplier wallets.</span>
         <nav>
           <Link href="/supplier">Suppliers</Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import { LogoMark } from "@/components/Logo.tsx";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { getAddress, isAddress } from "viem";
@@ -102,7 +103,7 @@ export default function SupplierPortal() {
   return (
     <>
       <header className="topbar">
-        <Link className="brand" href="/"><span className="brand-mark">E</span><span>emporos</span></Link>
+        <Link className="brand" href="/"><LogoMark size={26} /><span>emporos</span></Link>
         <span className="badge">Supplier portal{mode === "demo" ? " · demo" : ""}</span>
       </header>
       <main className="shell">

@@ -1,5 +1,6 @@
 "use client";
 
+import { LogoMark } from "@/components/Logo.tsx";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -32,7 +33,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <>
       <header className="topbar">
         <Link className="brand" href="/">
-          <span className="brand-mark">E</span>
+          <LogoMark size={26} />
           <span>emporos</span>
         </Link>
         <div className="topbar-right">

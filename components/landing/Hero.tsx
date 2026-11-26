@@ -1,5 +1,6 @@
 "use client";
 
+import { LogoMark } from "@/components/Logo.tsx";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
@@ -85,7 +86,7 @@ export function Hero() {
       <div className="lx-pin">
         <nav className="lx-nav" aria-label="Main">
           <Link href="/" className="lx-logo" aria-label="Emporos home">
-            <span className="lx-mark">E</span>
+            <LogoMark size={30} title="Emporos" />
           </Link>
           <div className="lx-glass">
             <a href="#how">Shops</a>
