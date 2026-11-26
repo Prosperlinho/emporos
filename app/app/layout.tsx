@@ -24,8 +24,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (ready && mode === "live" && !user) router.replace("/login");
-  }, [ready, mode, user, router]);
+    if (!ready) return;
+    // Client-side navigation to /app?demo=1 doesn't remount the app state, so honour the flag here.
+    if (new URLSearchParams(window.location.search).get("demo") === "1") {
+      if (mode !== "demo") setMode("demo");
+      return;
+    }
+    if (mode === "live" && !user) router.replace("/login");
+  }, [ready, mode, user, router, setMode, pathname]);
 
   const active = (href: string) => (href === "/app" ? pathname === "/app" : pathname.startsWith(href));
 
