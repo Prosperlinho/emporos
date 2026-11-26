@@ -29,31 +29,54 @@ export function llmConfigured(): boolean {
   return Boolean(process.env.LLM_API_KEY && process.env.LLM_MODEL);
 }
 
-export async function parseWithLlm(text: string): Promise<ParsedRequest> {
+/** Provider error text, trimmed. Never includes our key (it is only ever sent as a header). */
+async function describeFailure(response: Response): Promise<string> {
+  const raw = await response.text().catch(() => "");
+  let detail = raw;
+  try {
+    const parsed = JSON.parse(raw) as { error?: { message?: string } | Array<{ error?: { message?: string } }> };
+    const err = Array.isArray(parsed) ? parsed[0]?.error : parsed.error;
+    if (err?.message) detail = err.message;
+  } catch {
+    // not JSON; keep raw text
+  }
+  return `HTTP ${response.status}: ${detail.replace(/\s+/g, " ").slice(0, 300)}`;
+}
+
+async function callLlm(base: string, text: string, jsonMode: boolean): Promise<Response> {
+  return fetch(`${base}/chat/completions`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${process.env.LLM_API_KEY}` },
+    body: JSON.stringify({
+      model: process.env.LLM_MODEL,
+      temperature: 0,
+      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: text },
+      ],
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+}
+
+export type LlmParse = ParsedRequest & { llmError?: string };
+
+export async function parseWithLlm(text: string): Promise<LlmParse> {
   const fallback = parseRequestText(text);
   if (!llmConfigured()) return fallback;
 
-  const base = (process.env.LLM_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
+  const base = (process.env.LLM_BASE_URL || "https://api.openai.com/v1").trim().replace(/\/+$/, "");
   try {
-    const response = await fetch(`${base}/chat/completions`, {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${process.env.LLM_API_KEY}` },
-      body: JSON.stringify({
-        model: process.env.LLM_MODEL,
-        temperature: 0,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: text },
-        ],
-      }),
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!response.ok) throw new Error(`LLM HTTP ${response.status}`);
+    let response = await callLlm(base, text, true);
+    // Some OpenAI-compatible providers reject response_format; ask again without it.
+    if (response.status === 400) response = await callLlm(base, text, false);
+    if (!response.ok) throw new Error(await describeFailure(response));
     const body = (await response.json()) as { choices?: { message?: { content?: string } }[] };
     const content = body.choices?.[0]?.message?.content ?? "";
-    const json = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ""));
-    const out = LlmOutput.parse(json);
+    const jsonText = content.match(/\{[\s\S]*\}/)?.[0];
+    if (!jsonText) throw new Error(`Model reply had no JSON: ${content.slice(0, 120)}`);
+    const out = LlmOutput.parse(JSON.parse(jsonText));
 
     const budgetRaw = out.maxBudgetNaira === undefined ? undefined : String(out.maxBudgetNaira).replace(/[\u20A6,\s]/g, "");
     const budget = budgetRaw && isNaira(budgetRaw) ? budgetRaw : budgetRaw ? parseNairaAmount(budgetRaw) : null;
@@ -71,7 +94,8 @@ export async function parseWithLlm(text: string): Promise<ParsedRequest> {
     }
     return { request, missing: missingFields(request), source: "llm" };
   } catch (error) {
-    console.warn("LLM parse failed, using rule-based parser:", error instanceof Error ? error.message : error);
-    return fallback;
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn("LLM parse failed, using rule-based parser:", reason);
+    return { ...fallback, llmError: reason.slice(0, 400) };
   }
 }
