@@ -19,7 +19,7 @@ const MULTIPLIERS: Record<string, bigint> = {
 /** Parse "₦2m", "2.5 million naira", "N 1,200,000", "500k" into a naira decimal string. */
 export function parseNairaAmount(text: string): string | null {
   const pattern =
-    /(?:₦|\bN(?=\s?\d)|\bNGN\s?|\bcNGN\s?)?\s*(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(k|thousand|mn|m|million|bn|b|billion)?\b\s*(?:naira|ngn|cngn)?/i;
+    /(?:\u20A6|\bN(?=\s?\d)|\bNGN\s?|\bcNGN\s?)?\s*(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(k|thousand|mn|m|million|bn|b|billion)?\b\s*(?:naira|ngn|cngn)?/i;
   const match = text.match(pattern);
   if (!match?.[1]) return null;
   const raw = match[1].replace(/,/g, "");
@@ -39,7 +39,7 @@ export function parseNairaAmount(text: string): string | null {
 function findBudget(text: string): string | null {
   // 1. An amount explicitly marked as naira wins.
   const currency = text.match(
-    /(?:₦|\bN(?=\s?\d)|\bNGN\s?)\s*[\d.,]+\s*(?:k|thousand|mn|m|million|bn|b|billion)?\b|[\d.,]+\s*(?:k|thousand|mn|m|million|bn|b|billion)?\s*(?:naira|ngn)\b/i,
+    /(?:\u20A6|\bN(?=\s?\d)|\bNGN\s?)\s*[\d.,]+\s*(?:k|thousand|mn|m|million|bn|b|billion)?\b|[\d.,]+\s*(?:k|thousand|mn|m|million|bn|b|billion)?\s*(?:naira|ngn)\b/i,
   );
   if (currency?.[0]) {
     const amount = parseNairaAmount(currency[0]);
@@ -81,7 +81,7 @@ function findDeadline(text: string): number | null {
 
 function findQuantityAndItem(text: string): { quantity: number | null; item: string | null } {
   const unitPattern = new RegExp(
-    `\\b(\\d{1,6})\\s*(?:x\\s*)?((?:\\d+\\s*(?:kg|g|l|ml|litres?|liters?)\\s+)?(?:${UNIT_WORDS})\\b(?:\\s+of)?\\s+)?([A-Za-z0-9][A-Za-z0-9 \\-'/]*?)(?=\\s*(?:,|;|\\.(?!\\d)|\\bunder\\b|\\bbelow\\b|\\bfor\\b|\\bwithin\\b|\\bin\\b|\\bto\\b|\\bbudget\\b|\\bmax\\b|\\bby\\b|\\bdelivered\\b|\\bdelivery\\b|\\bneeded\\b|₦|$))`,
+    `\\b(\\d{1,6})\\s*(?:x\\s*)?((?:\\d+\\s*(?:kg|g|l|ml|litres?|liters?)\\s+)?(?:${UNIT_WORDS})\\b(?:\\s+of)?\\s+)?([A-Za-z0-9][A-Za-z0-9 \\-'/]*?)(?=\\s*(?:,|;|\\.(?!\\d)|\\bunder\\b|\\bbelow\\b|\\bfor\\b|\\bwithin\\b|\\bin\\b|\\bto\\b|\\bbudget\\b|\\bmax\\b|\\bby\\b|\\bdelivered\\b|\\bdelivery\\b|\\bneeded\\b|\\u20A6|$))`,
     "i",
   );
   const match = text.match(unitPattern);
@@ -98,7 +98,7 @@ export function parseRequestText(text: string): ParsedRequest {
   // Remove the budget phrase before hunting for quantity so "₦2m" is never read as "2 m".
   const budget = findBudget(text);
   const { quantity, item } = findQuantityAndItem(
-    text.replace(/(?:₦|\bN(?=\s?\d)|\bNGN\s?)\s*[\d.,]+\s*(?:k|thousand|mn|m|million|bn|b|billion)?\b/gi, " "),
+    text.replace(/(?:\u20A6|\bN(?=\s?\d)|\bNGN\s?)\s*[\d.,]+\s*(?:k|thousand|mn|m|million|bn|b|billion)?\b/gi, " "),
   );
   const deliveryArea = findArea(text);
   const deadlineDays = findDeadline(text);

@@ -55,7 +55,7 @@ export async function parseWithLlm(text: string): Promise<ParsedRequest> {
     const json = JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, ""));
     const out = LlmOutput.parse(json);
 
-    const budgetRaw = out.maxBudgetNaira === undefined ? undefined : String(out.maxBudgetNaira).replace(/[₦,\s]/g, "");
+    const budgetRaw = out.maxBudgetNaira === undefined ? undefined : String(out.maxBudgetNaira).replace(/[\u20A6,\s]/g, "");
     const budget = budgetRaw && isNaira(budgetRaw) ? budgetRaw : budgetRaw ? parseNairaAmount(budgetRaw) : null;
 
     const request: Partial<PurchaseRequest> = { ...fallback.request };
@@ -66,7 +66,7 @@ export async function parseWithLlm(text: string): Promise<ParsedRequest> {
     if (out.deadlineDays !== undefined) request.deadlineDays = out.deadlineDays;
 
     // A budget the user actually wrote with a currency marker beats an LLM reinterpretation.
-    if (fallback.request.maxBudget && request.maxBudget !== fallback.request.maxBudget && /₦|naira|ngn|\bN\d/i.test(text)) {
+    if (fallback.request.maxBudget && request.maxBudget !== fallback.request.maxBudget && /\u20A6|naira|ngn|\bN\d/i.test(text)) {
       request.maxBudget = fallback.request.maxBudget;
     }
     return { request, missing: missingFields(request), source: "llm" };

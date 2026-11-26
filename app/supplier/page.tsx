@@ -63,8 +63,8 @@ export default function SupplierPortal() {
     e.preventDefault();
     try {
       if (!current) throw new Error("Save your supplier profile first.");
-      const unitPrice = form.unitPrice.replace(/[₦,\s]/g, "");
-      const deliveryFee = (form.deliveryFee || "0").replace(/[₦,\s]/g, "");
+      const unitPrice = form.unitPrice.replace(/[\u20A6,\s]/g, "");
+      const deliveryFee = (form.deliveryFee || "0").replace(/[\u20A6,\s]/g, "");
       if (!form.name.trim()) throw new Error("Product name is required.");
       if (!isNaira(unitPrice) || !isNaira(deliveryFee)) throw new Error("Prices must be naira amounts, e.g. 36500.");
       const stock = Number(form.stock);

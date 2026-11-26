@@ -207,7 +207,7 @@ export default function AgentPage() {
                       if (v === "") delete next[key];
                       else next[key] = Number(v.replace(/\D/g, ""));
                     } else if (key === "maxBudget") {
-                      const cleaned = v.replace(/[₦,\s]/g, "");
+                      const cleaned = v.replace(/[\u20A6,\s]/g, "");
                       if (cleaned === "" || !isNaira(cleaned)) delete next.maxBudget;
                       else next.maxBudget = cleaned;
                     } else next[key] = v;
