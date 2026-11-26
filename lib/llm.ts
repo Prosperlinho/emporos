@@ -75,8 +75,22 @@ async function callLlm(base: string, text: string, jsonMode: boolean): Promise<R
         { role: "user", content: text },
       ],
     }),
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(10_000),
   });
+}
+
+const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+
+/** One call, retried once after a short pause if the provider is busy or the call times out. */
+async function callWithRetry(base: string, text: string, jsonMode: boolean): Promise<Response> {
+  try {
+    const first = await callLlm(base, text, jsonMode);
+    if (!RETRYABLE.has(first.status)) return first;
+  } catch (error) {
+    if (!(error instanceof Error && error.name === "TimeoutError")) throw error;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 800));
+  return callLlm(base, text, jsonMode);
 }
 
 export type LlmParse = ParsedRequest & { llmError?: string };
@@ -87,9 +101,9 @@ export async function parseWithLlm(text: string): Promise<LlmParse> {
 
   const base = (process.env.LLM_BASE_URL || "https://api.openai.com/v1").trim().replace(/\/+$/, "");
   try {
-    let response = await callLlm(base, text, true);
+    let response = await callWithRetry(base, text, true);
     // Some OpenAI-compatible providers reject response_format; ask again without it.
-    if (response.status === 400) response = await callLlm(base, text, false);
+    if (response.status === 400) response = await callWithRetry(base, text, false);
     if (!response.ok) throw new Error(await describeFailure(response));
     const body = (await response.json()) as { choices?: { message?: { content?: string } }[] };
     const content = body.choices?.[0]?.message?.content ?? "";
