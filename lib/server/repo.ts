@@ -41,6 +41,8 @@ const BusinessSchema = z.object({
   altanaWallet: address.optional(),
   agentId: z.string().regex(/^\d{1,78}$/).optional(),
   agentRegistrationTx: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
+  listed: z.boolean().optional(),
+  rulesSavedAt: z.string().max(40).optional(),
   rules: RulesSchema,
   agent: AgentSchema.optional(),
 });
@@ -303,4 +305,45 @@ export async function updateOrder(user: SessionUser, id: string, input: unknown)
     update orders set status = ${status}, doc = ${JSON.stringify(doc)}::jsonb where id = ${id} returning *`;
   if (!row) throw new HttpError(404, "Order not found.");
   return toOrder(row);
+}
+
+/* Public agent directory ----------------------------------------------------- */
+
+export interface PublicAgent {
+  businessId: string;
+  name: string;
+  location: string;
+  agentId: string;
+  registrationTx?: string;
+  /** The wallet the agent pays from, if it has an active agent wallet. */
+  agentWallet?: string;
+  walletType?: "altana" | "session-key";
+  active: boolean;
+  listedSince: string;
+}
+
+/** Opted-in businesses with an ERC-8004 agent ID. Only public, non-sensitive fields. */
+export async function listPublicAgents(): Promise<PublicAgent[]> {
+  const sql = await db();
+  const rows = await sql`
+    select id, doc, updated_at from businesses
+    where doc->>'listed' = 'true' and doc ? 'agentId'
+    order by updated_at desc
+    limit 500`;
+  const now = Date.now();
+  return rows.map((r) => {
+    const doc = r.doc as Business;
+    const agent = doc.agent;
+    const active = Boolean(agent && !agent.revokedAt && new Date(agent.expiresAt).getTime() > now);
+    return {
+      businessId: r.id as string,
+      name: doc.name,
+      location: doc.location,
+      agentId: doc.agentId!,
+      ...(doc.agentRegistrationTx ? { registrationTx: doc.agentRegistrationTx } : {}),
+      ...(agent && active ? { agentWallet: agent.address, walletType: agent.provider === "altana" ? "altana" as const : "session-key" as const } : {}),
+      active,
+      listedSince: new Date(r.updated_at as string).toISOString(),
+    };
+  });
 }

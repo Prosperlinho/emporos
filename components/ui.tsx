@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { shortAddress, txUrl } from "@/lib/chain/config.ts";
 import type { PayStep } from "@/lib/payments.ts";
+import type { SetupStep } from "@/lib/setup.ts";
 import type { OrderStatus } from "@/lib/types.ts";
 
 export function errorText(error: unknown): string {
@@ -75,5 +76,33 @@ export function Empty({ children, action }: { children: ReactNode; action?: { hr
       <p className="muted" style={{ marginBottom: action ? 12 : 0 }}>{children}</p>
       {action && <Link className="btn" href={action.href}>{action.label}</Link>}
     </div>
+  );
+}
+
+/** Setup progress shown until a live shop has finished all four steps. */
+export function SetupChecklist({ steps }: { steps: SetupStep[] }) {
+  const done = steps.filter((s) => s.done).length;
+  if (done === steps.length) return null;
+  const next = steps.find((s) => !s.done)!;
+  return (
+    <section className="panel accent setup">
+      <div className="row between">
+        <h2>Finish setting up</h2>
+        <span className="badge">{done} of {steps.length}</span>
+      </div>
+      <p className="sub">You can search and compare now. Payments unlock when all four steps are done.</p>
+      <div className="timeline">{steps.map((s) => <span key={s.id} className={s.done ? "on" : ""} />)}</div>
+      <ol className="setup-steps">
+        {steps.map((s) => (
+          <li key={s.id} className={s.done ? "done" : s.id === next.id ? "next" : ""}>
+            <Link href={s.href}>
+              <span className="setup-icon" aria-hidden="true">{s.done ? "✓" : ""}</span>
+              <span><b>{s.label}</b><small>{s.hint}</small></span>
+              {!s.done && s.id === next.id && <span className="setup-go">Next →</span>}
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

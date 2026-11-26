@@ -91,6 +91,7 @@ export function Hero() {
           <div className="lx-glass">
             <a href="#how">Shops</a>
             <Link href="/supplier">Suppliers</Link>
+            <Link href="/agents">Agents</Link>
           </div>
           <div className="lx-nav-right">
             <Link href="/login" className="lx-link">Sign in</Link>

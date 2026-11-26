@@ -44,6 +44,10 @@ export interface Business {
   /** ERC-8004 agent ID (uint256 as decimal string). */
   agentId?: string;
   agentRegistrationTx?: string;
+  /** Opted in to the public agent directory (/agents). */
+  listed?: boolean;
+  /** Set when the owner saves their spending rules (setup step 2). */
+  rulesSavedAt?: string;
   rules: SpendingRules;
   agent?: AgentPolicy;
 }

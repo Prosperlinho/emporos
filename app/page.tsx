@@ -19,6 +19,7 @@ export default function Landing() {
         <span>Payments on Celo are final. Verify supplier wallets.</span>
         <nav>
           <Link href="/supplier">Suppliers</Link>
+          <Link href="/agents">Agents</Link>
           <Link href="/login">Sign in</Link>
         </nav>
       </footer>

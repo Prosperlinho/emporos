@@ -9,11 +9,12 @@ import { errorText, OrderTimeline, StatusBadge, StepList, TxLink } from "@/compo
 import { usePayOrder } from "@/components/usePayOrder.ts";
 import { addressUrl, liveReadiness, shortAddress } from "@/lib/chain/config.ts";
 import { formatNaira } from "@/lib/money.ts";
+import { setupComplete } from "@/lib/setup.ts";
 import type { Order } from "@/lib/types.ts";
 
 export default function ReceiptPage() {
   const { id } = useParams<{ id: string }>();
-  const { store, mode } = useApp();
+  const { store, mode, business } = useApp();
   const publicClient = useCeloPublicClient();
   const { pay, steps, running, ownerConnected } = usePayOrder();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
@@ -145,7 +146,7 @@ export default function ReceiptPage() {
           <>
             <button
               className="btn primary block"
-              disabled={busy || running || (mode === "live" && (!ownerConnected || liveReadiness().length > 0))}
+              disabled={busy || running || (mode === "live" && (!ownerConnected || liveReadiness().length > 0 || !setupComplete(business)))}
               onClick={() => void act(() => pay(o, "owner"), "Payment confirmed.")}
             >
               Approve &amp; pay {formatNaira(o.amount)}

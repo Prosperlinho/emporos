@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/AppContext.tsx";
-import { errorText, StepList } from "@/components/ui.tsx";
+import { errorText, SetupChecklist, StepList } from "@/components/ui.tsx";
+import { setupSteps } from "@/lib/setup.ts";
 import { usePayOrder } from "@/components/usePayOrder.ts";
 import { liveReadiness } from "@/lib/chain/config.ts";
 import { formatNaira, isNaira } from "@/lib/money.ts";
@@ -45,6 +46,9 @@ export default function AgentPage() {
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const readiness = mode === "live" ? liveReadiness() : [];
+  const setup = setupSteps(business);
+  // Live shops can search before setup is done, but nothing is paid until all four steps are complete.
+  const setupDone = mode === "demo" || setup.every((s) => s.done);
 
   useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
 
@@ -97,7 +101,7 @@ export default function AgentPage() {
         amount: recommendation.best.total,
       });
       setOrder(created);
-      if (check.withinRules && readiness.length === 0) startAutoPay(created);
+      if (check.withinRules && readiness.length === 0 && setupDone) startAutoPay(created);
     } catch (e) {
       setError(errorText(e));
     }
@@ -146,11 +150,7 @@ export default function AgentPage() {
         <p>Item, quantity, budget, place, deadline.</p>
       </section>
 
-      {mode === "live" && !business && (
-        <div className="notice warn" style={{ marginTop: 12 }}>
-          Set up your business first. <Link href="/app/settings">Settings →</Link>
-        </div>
-      )}
+      {mode === "live" && <SetupChecklist steps={setup} />}
       {readiness.length > 0 && (
         <div className="notice warn" style={{ marginTop: 12 }}>
           Payments are off until configured: {readiness.join("; ")}.
@@ -314,12 +314,13 @@ export default function AgentPage() {
                 <button
                   className="btn primary block"
                   type="button"
-                  disabled={readiness.length > 0 || (mode === "live" && !ownerConnected)}
+                  disabled={readiness.length > 0 || !setupDone || (mode === "live" && !ownerConnected)}
                   onClick={() => void runPayment(order, "owner")}
                 >
                   Approve &amp; pay {formatNaira(order.amount)}
                 </button>
-                {mode === "live" && !ownerConnected && <p className="small muted">Connect your wallet to approve.</p>}
+                {!setupDone && <p className="small muted">Finish setup above to unlock payments.</p>}
+                {setupDone && mode === "live" && !ownerConnected && <p className="small muted">Connect your wallet to approve.</p>}
                 <Link className="btn block" href={`/app/orders/${order.id}`}>Save for later</Link>
               </div>
             </>

@@ -173,3 +173,27 @@
 .lx-footer svg { color: #fff; flex: none; }
 .lx { --logo-accent: #5b6b7e; }
 .lx-footer { --logo-accent: #8a9bb0; }
+
+/* Agent directory ------------------------------------------------------------ */
+.lx-dir-nav { display: flex; align-items: center; justify-content: space-between; height: 90px; padding: 0 clamp(16px, 4vw, 48px); }
+.lx-dir { max-width: 1120px; margin: 0 auto; padding: 40px clamp(16px, 5vw, 48px) 100px; min-height: 70vh; }
+.lx-dir > header { max-width: 640px; margin-bottom: 36px; }
+.lx-dir h1 { margin: 0 0 14px; font-size: clamp(34px, 4.2vw, 51px); line-height: 1.1; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); }
+.lx-dir > header p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--muted); }
+.lx-search { width: 100%; max-width: 460px; height: 48px; padding: 0 20px; border: 1px solid var(--hair); border-radius: 100px; background: var(--soft); color: var(--ink); font: inherit; font-size: 15px; }
+.lx-search:focus { outline: 2px solid var(--slate); outline-offset: 2px; background: #fff; }
+.lx-dir-count { margin: 14px 0 22px; font-size: 12px; color: var(--muted-2); }
+.lx-dir-empty { padding: 48px 0; border-top: 1px solid var(--hair); color: var(--muted); font-size: 15px; }
+.lx-agents { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); margin: 0; padding: 0; list-style: none; }
+.lx-agent { padding: 22px; border-radius: 22px; background: var(--soft); transition: transform 0.4s var(--spring); }
+.lx-agent:hover { transform: translateY(-3px); }
+.lx-agent-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+.lx-agent h3 { margin: 0 0 2px; font-size: 20px; font-weight: 500; color: var(--ink); }
+.lx-agent-top span { font-size: 13px; color: var(--muted); }
+.lx-status { padding: 4px 10px; border-radius: 100px; background: #fff; font-size: 12px !important; }
+.lx-status.on { background: var(--ink); color: #fff !important; }
+.lx-agent dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0; font-size: 13.5px; }
+.lx-agent dt { color: var(--muted-2); }
+.lx-agent dd { margin: 0; text-align: right; color: var(--ink); }
+.lx-agent dd a { border-bottom: 1px solid var(--hair); }
+.lx-agent dd small { color: var(--muted-2); }

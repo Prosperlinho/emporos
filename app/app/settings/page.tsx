@@ -29,6 +29,7 @@ export default function SettingsPage() {
   const [provider, setProvider] = useState<"altana" | "local-session-key">("altana");
   const useAltana = mode === "live" && provider === "altana";
   const [manualAgentId, setManualAgentId] = useState("");
+  const [listOnRegister, setListOnRegister] = useState(true);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Record<string, Msg>>({});
 
@@ -73,7 +74,7 @@ export default function SettingsPage() {
     if (!isNaira(rules.maxPerOrder) || !isNaira(rules.periodCap)) return say("rules", "Limits must be naira amounts, e.g. 500000.", true);
     if (toKobo(rules.maxPerOrder) > toKobo(rules.periodCap)) return say("rules", `The per-order limit can't be above the ${rules.period} cap.`, true);
     if (!business) return say("rules", "Save your business profile first.", true);
-    await save({ ...business, rules }, "rules", "Spending rules saved.");
+    await save({ ...business, rules, rulesSavedAt: new Date().toISOString() }, "rules", "Spending rules saved.");
   }
 
   async function createAgent() {
@@ -185,7 +186,7 @@ export default function SettingsPage() {
       const uri = `${window.location.origin}/api/agent-registration?${new URLSearchParams({ wallet, name: `Emporos agent for ${business.name}` })}`;
       if (!uri.startsWith("https://")) throw new Error("Register from your deployed HTTPS site; the registry must be able to fetch the agent document.");
       const { agentId, hash } = await registerAgent(ownerSigner, publicClient, uri);
-      setBusiness(await store.saveBusiness({ ...business, agentId, agentRegistrationTx: hash }));
+      setBusiness(await store.saveBusiness({ ...business, agentId, agentRegistrationTx: hash, listed: listOnRegister }));
       say("identity", `Registered as agent #${agentId}.`);
     } catch (e) {
       say("identity", errorText(e), true);
@@ -206,7 +207,7 @@ export default function SettingsPage() {
         
       </section>
 
-      <section className="panel">
+      <section className="panel" id="profile">
         <h2>Business profile</h2>
         <form className="stack" onSubmit={(e) => void saveProfile(e)} style={{ marginTop: 10 }}>
           <label className="field"><span>Business name</span><input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required /></label>
@@ -224,7 +225,7 @@ export default function SettingsPage() {
         )}
       </section>
 
-      <section className="panel">
+      <section className="panel" id="rules">
         <h2>Spending rules</h2>
         <p className="sub">Inside these, the agent pays. Outside, you approve.</p>
         <form className="stack" onSubmit={(e) => void saveRules(e)}>
@@ -248,7 +249,7 @@ export default function SettingsPage() {
         <Note k="rules" />
       </section>
 
-      <section className="panel">
+      <section className="panel" id="agent">
         <div className="row between">
           <h2>Agent wallet</h2>
           {agent && <span className={`badge ${active ? "green" : "red"}`}><span className="dot" />{active ? "Active" : agent.revokedAt ? "Revoked" : "Expired"}</span>}
@@ -344,21 +345,40 @@ export default function SettingsPage() {
         <Note k="agent" />
       </section>
 
-      <section className="panel">
+      <section className="panel" id="identity">
         <h2>Agent identity (ERC-8004)</h2>
         {business?.agentId ? (
-          <dl className="kv" style={{ marginTop: 10 }}>
-            <dt>Agent ID</dt><dd><strong>#{business.agentId}</strong></dd>
-            <dt>Registry</dt><dd className="mono"><a href={addressUrl(IDENTITY_REGISTRY)} target="_blank" rel="noreferrer">{shortAddress(IDENTITY_REGISTRY)} ↗</a></dd>
-            {business.agentRegistrationTx && <><dt>Registration</dt><dd><TxLink hash={business.agentRegistrationTx} /></dd></>}
-          </dl>
+          <>
+            <dl className="kv" style={{ marginTop: 10 }}>
+              <dt>Agent ID</dt><dd><strong>#{business.agentId}</strong></dd>
+              <dt>Registry</dt><dd className="mono"><a href={addressUrl(IDENTITY_REGISTRY)} target="_blank" rel="noreferrer">{shortAddress(IDENTITY_REGISTRY)} ↗</a></dd>
+              {business.agentRegistrationTx && <><dt>Registration</dt><dd><TxLink hash={business.agentRegistrationTx} /></dd></>}
+            </dl>
+            {mode === "live" && (
+              <label className="check" style={{ marginTop: 10 }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(business.listed)}
+                  disabled={busy}
+                  onChange={(e) => void save({ ...business, listed: e.target.checked }, "identity", e.target.checked ? "Listed in the agent directory." : "Removed from the agent directory.")}
+                />
+                Show my shop in the <a href="/agents" target="_blank" rel="noreferrer">public agent directory</a>
+              </label>
+            )}
+          </>
         ) : (
           <>
-            <p className="sub">List the agent in Celo's Identity Registry. Your wallet owns it.</p>
+            <p className="sub">List the agent in Celo&apos;s Identity Registry. Your wallet owns it.</p>
+            {mode === "live" && (
+              <label className="check">
+                <input type="checkbox" checked={listOnRegister} onChange={(e) => setListOnRegister(e.target.checked)} />
+                Also show my shop name and city in the public agent directory
+              </label>
+            )}
             <button className="btn primary block" disabled={busy || !business} onClick={() => void register()}>Register agent on Celo</button>
             <div className="row" style={{ marginTop: 10 }}>
               <input placeholder="Already registered? Agent ID" inputMode="numeric" value={manualAgentId} onChange={(e) => setManualAgentId(e.target.value.replace(/\D/g, ""))} style={{ flex: 1 }} />
-              <button className="btn" disabled={!manualAgentId || !business} onClick={() => void save({ ...business!, agentId: manualAgentId }, "identity", `Saved agent #${manualAgentId}.`)}>Save</button>
+              <button className="btn" disabled={!manualAgentId || !business} onClick={() => void save({ ...business!, agentId: manualAgentId, listed: mode === "live" && listOnRegister }, "identity", `Saved agent #${manualAgentId}.`)}>Save</button>
             </div>
           </>
         )}
