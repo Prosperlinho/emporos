@@ -6,7 +6,8 @@ import { useApp } from "@/components/AppContext.tsx";
 import { Balances } from "@/components/Balances.tsx";
 import { useCeloPublicClient, useOwnerSigner } from "@/components/hooks.ts";
 import { errorText, TxLink } from "@/components/ui.tsx";
-import { altanaProvider, forgetLocalKey, hasLocalKey, localSessionKeyProvider, providerFor } from "@/lib/agent-wallet.ts";
+import { forgetLocalKey, hasLocalKey, localSessionKeyProvider, providerFor } from "@/lib/agent-wallet.ts";
+import { hasAltanaSession } from "@/lib/altana.ts";
 import { addressUrl, IDENTITY_REGISTRY, shortAddress } from "@/lib/chain/config.ts";
 import { registerAgent } from "@/lib/erc8004.ts";
 import { formatNaira, isNaira, toKobo } from "@/lib/money.ts";
@@ -24,7 +25,9 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState({ name: "", location: "" });
   const [rules, setRules] = useState<SpendingRules>(DEFAULT_RULES);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [agentForm, setAgentForm] = useState({ spendCap: "500000", days: "30" });
+  const [agentForm, setAgentForm] = useState({ spendCap: "500000", days: "30", period: "week" as "day" | "week" });
+  const [provider, setProvider] = useState<"altana" | "local-session-key">("altana");
+  const useAltana = mode === "live" && provider === "altana";
   const [manualAgentId, setManualAgentId] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Record<string, Msg>>({});
@@ -84,6 +87,20 @@ export default function SettingsPage() {
     setBusy(true);
     try {
       const expiresAt = new Date(Date.now() + days * 86_400_000).toISOString();
+      if (useAltana) {
+        if (!business.altanaWallet) throw new Error("Create your Altana wallet first.");
+        say("agent", "Confirm with your passkey. Writing the agent's limits on-chain…");
+        const { grantAltanaSession } = await import("@/lib/altana.ts");
+        const policy = await grantAltanaSession(business.id, business.altanaWallet as `0x${string}`, {
+          spendCap: agentForm.spendCap,
+          period: agentForm.period,
+          expiresAt,
+          allowlist,
+        });
+        setBusiness(await store.saveBusiness({ ...business, agent: policy }));
+        say("agent", "Agent active. Its cap, allowed contract and expiry are now enforced on-chain.");
+        return;
+      }
       const policy = mode === "demo"
         ? { provider: "local-session-key" as const, address: `0x${"9".repeat(40)}` as `0x${string}`, spendCap: agentForm.spendCap, spent: "0", allowlist, createdAt: new Date().toISOString(), expiresAt }
         : await localSessionKeyProvider.create(business.id, { spendCap: agentForm.spendCap, allowlist, expiresAt });
@@ -98,11 +115,20 @@ export default function SettingsPage() {
 
   async function revokeAgent() {
     if (!business?.agent) return;
-    if (!window.confirm("Revoke the agent? Remaining funds go back to your connected wallet and the session key is deleted.")) return;
+    const isAltana = business.agent.provider === "altana";
+    const prompt = isAltana
+      ? "Revoke the agent? Its session key is cancelled on-chain. Funds stay in your Altana wallet."
+      : "Revoke the agent? Remaining funds go back to your connected wallet and the session key is deleted.";
+    if (!window.confirm(prompt)) return;
     setBusy(true);
     try {
       let hashes: string[] = [];
-      if (mode === "live") {
+      if (mode === "live" && isAltana) {
+        say("agent", "Confirm with your passkey…");
+        const { revokeAltanaSession } = await import("@/lib/altana.ts");
+        const hash = await revokeAltanaSession(business.id, business.agent);
+        if (hash) hashes = [hash];
+      } else if (mode === "live") {
         if (!ownerAddress || !publicClient) throw new Error("Connect your wallet first so funds can be returned to it.");
         say("agent", "Returning funds to your wallet…");
         hashes = await providerFor(business.agent).revoke(business.id, business.agent, ownerAddress, publicClient);
@@ -113,6 +139,37 @@ export default function SettingsPage() {
       say("agent", hashes.length ? `Agent revoked. Returned funds in ${hashes.length} transaction(s).` : "Agent revoked.");
     } catch (e) {
       say("agent", `${errorText(e)} The agent is still active.`, true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function createAltanaWallet() {
+    if (!business) return say("agent", "Save your business profile first.", true);
+    setBusy(true);
+    try {
+      say("agent", "Follow your device's passkey prompt…");
+      const { setUpAltanaWallet } = await import("@/lib/altana.ts");
+      const altanaWallet = await setUpAltanaWallet();
+      setBusiness(await store.saveBusiness({ ...business, altanaWallet }));
+      say("agent", "Altana wallet created. Fund it, then activate the agent.");
+    } catch (e) {
+      say("agent", errorText(e), true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function recoverAltanaWallet() {
+    if (!business) return say("agent", "Save your business profile first.", true);
+    setBusy(true);
+    try {
+      const { setUpAltanaWallet } = await import("@/lib/altana.ts");
+      const altanaWallet = await setUpAltanaWallet("recover");
+      setBusiness(await store.saveBusiness({ ...business, altanaWallet }));
+      say("agent", "Altana wallet found.");
+    } catch (e) {
+      say("agent", errorText(e), true);
     } finally {
       setBusy(false);
     }
@@ -139,6 +196,7 @@ export default function SettingsPage() {
 
   const agent = business?.agent;
   const active = agentPolicyActive(agent, new Date());
+  const altanaReady = business ? hasAltanaSession(business.id) : false;
   const Note = ({ k }: { k: string }) => (msg[k] ? <div className={`notice ${msg[k]!.error ? "error" : "ok"}`} style={{ marginTop: 10 }}>{msg[k]!.text}</div> : null);
 
   return (
@@ -171,7 +229,7 @@ export default function SettingsPage() {
         <p className="sub">Inside these, the agent pays. Outside, you approve.</p>
         <form className="stack" onSubmit={(e) => void saveRules(e)}>
           <div className="grid-2">
-            <label className="field"><span>Max per order (₦)</span><input inputMode="numeric" value={rules.maxPerOrder} onChange={(e) => setRules({ ...rules, maxPerOrder: e.target.value.replace(/[₦,\s]/g, "") })} /></label>
+            <label className="field"><span>Max per order (₦)</span><input inputMode="numeric" value={rules.maxPerOrder} onChange={(e) => setRules({ ...rules, maxPerOrder: e.target.value.replace(/[\u20A6,\s]/g, "") })} /></label>
             <label className="field">
               <span>Cap per</span>
               <select value={rules.period} onChange={(e) => setRules({ ...rules, period: e.target.value as SpendingRules["period"] })}>
@@ -180,7 +238,7 @@ export default function SettingsPage() {
               </select>
             </label>
           </div>
-          <label className="field"><span>{rules.period === "daily" ? "Daily" : "Weekly"} cap (₦)</span><input inputMode="numeric" value={rules.periodCap} onChange={(e) => setRules({ ...rules, periodCap: e.target.value.replace(/[₦,\s]/g, "") })} /></label>
+          <label className="field"><span>{rules.period === "daily" ? "Daily" : "Weekly"} cap (₦)</span><input inputMode="numeric" value={rules.periodCap} onChange={(e) => setRules({ ...rules, periodCap: e.target.value.replace(/[\u20A6,\s]/g, "") })} /></label>
           <label className="check">
             <input type="checkbox" checked={rules.requireApprovedSupplier} onChange={(e) => setRules({ ...rules, requireApprovedSupplier: e.target.checked })} />
             Only auto-pay approved suppliers ({rules.approvedSupplierIds.length} approved)
@@ -209,11 +267,21 @@ export default function SettingsPage() {
               <>
                 <h3 className="small muted" style={{ margin: "14px 0 6px" }}>Agent balances</h3>
                 <Balances address={agent.address} />
-                <p className="small muted" style={{ marginTop: 8 }}>
-                  To fund it, send cNGN (or USD₮ to swap) plus about 0.05 CELO for fees from your wallet to <span className="mono">{agent.address}</span>.
-                  Its balance is a hard ceiling on what it can spend.
-                </p>
-                {!hasLocalKey(business!.id) && <div className="notice warn">This device doesn't hold the agent key. Revoke and recreate it here.</div>}
+                {agent.provider === "altana" ? (
+                  <>
+                    <p className="small muted" style={{ marginTop: 8 }}>
+                      Limits on-chain: cNGN transfers only, up to {formatNaira(agent.spendCap)} per {agent.period ?? "period"}. Fund it with cNGN, plus a little USD₮ for fees.
+                    </p>
+                    {!altanaReady && <div className="notice warn">This device doesn&apos;t hold the agent&apos;s session key. Revoke and activate it again here.</div>}
+                  </>
+                ) : (
+                  <>
+                    <p className="small muted" style={{ marginTop: 8 }}>
+                      Fund it with cNGN (or USD₮ to swap) plus about 0.05 CELO for fees. Its balance is a hard ceiling.
+                    </p>
+                    {!hasLocalKey(business!.id) && <div className="notice warn">This device doesn&apos;t hold the agent key. Revoke and recreate it here.</div>}
+                  </>
+                )}
               </>
             )}
             <button className="btn danger block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void revokeAgent()}>Revoke agent</button>
@@ -223,19 +291,53 @@ export default function SettingsPage() {
           <>
             <p className="sub">Pays only allowlisted suppliers, up to its cap, until it expires.</p>
             <div className="stack">
-              <label className="field">
-                <span>Provider</span>
-                <select defaultValue="local-session-key">
-                  <option value="local-session-key">Session key in this browser</option>
-                  <option value="altana" disabled={!altanaProvider.available}>Altana (on-chain limits): not connected yet</option>
-                </select>
-              </label>
-              <div className="grid-2">
-                <label className="field"><span>Spend cap (₦)</span><input inputMode="numeric" value={agentForm.spendCap} onChange={(e) => setAgentForm({ ...agentForm, spendCap: e.target.value.replace(/[₦,\s]/g, "") })} /></label>
-                <label className="field"><span>Expires in (days)</span><input inputMode="numeric" value={agentForm.days} onChange={(e) => setAgentForm({ ...agentForm, days: e.target.value.replace(/\D/g, "") })} /></label>
-              </div>
-              
-              <button className="btn primary block" disabled={busy || !business} onClick={() => void createAgent()}>Create agent wallet</button>
+              {mode === "live" && (
+                <label className="field">
+                  <span>Provider</span>
+                  <select value={provider} onChange={(e) => setProvider(e.target.value as typeof provider)}>
+                    <option value="altana">Altana: limits enforced on-chain (recommended)</option>
+                    <option value="local-session-key">Session key in this browser</option>
+                  </select>
+                </label>
+              )}
+
+              {useAltana && !business?.altanaWallet ? (
+                <>
+                  <p className="small muted">Step 1: create your Altana wallet. It&apos;s secured by your device&apos;s passkey (Face ID or fingerprint), no seed phrase.</p>
+                  <button className="btn primary block" disabled={busy || !business} onClick={() => void createAltanaWallet()}>Create Altana wallet</button>
+                  <button className="link-btn small" disabled={busy || !business} onClick={() => void recoverAltanaWallet()}>I already have one</button>
+                </>
+              ) : (
+                <>
+                  {useAltana && business?.altanaWallet && (
+                    <>
+                      <p className="small muted">
+                        Step 2: fund <span className="mono">{business.altanaWallet}</span> with cNGN to spend and a little USD₮ for fees, then activate.
+                      </p>
+                      <Balances address={business.altanaWallet as `0x${string}`} />
+                    </>
+                  )}
+                  <div className="grid-2">
+                    <label className="field">
+                      <span>Spend cap (₦){useAltana ? "" : " total"}</span>
+                      <input inputMode="numeric" value={agentForm.spendCap} onChange={(e) => setAgentForm({ ...agentForm, spendCap: e.target.value.replace(/[\u20A6,\s]/g, "") })} />
+                    </label>
+                    {useAltana ? (
+                      <label className="field">
+                        <span>Per</span>
+                        <select value={agentForm.period} onChange={(e) => setAgentForm({ ...agentForm, period: e.target.value as "day" | "week" })}>
+                          <option value="day">Day</option>
+                          <option value="week">Week</option>
+                        </select>
+                      </label>
+                    ) : null}
+                    <label className="field"><span>Expires in (days)</span><input inputMode="numeric" value={agentForm.days} onChange={(e) => setAgentForm({ ...agentForm, days: e.target.value.replace(/\D/g, "") })} /></label>
+                  </div>
+                  <button className="btn primary block" disabled={busy || !business} onClick={() => void createAgent()}>
+                    {useAltana ? "Activate agent" : "Create agent wallet"}
+                  </button>
+                </>
+              )}
             </div>
           </>
         )}

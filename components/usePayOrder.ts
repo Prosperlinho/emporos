@@ -39,6 +39,31 @@ export function usePayOrder() {
         if (mode === "demo") return await simulate(order, by);
 
         if (!publicClient) throw new Error("Celo RPC is not available.");
+
+        if (by === "agent" && business.agent?.provider === "altana") {
+          const agent = business.agent;
+          await store.updateOrder(order.id, { status: "paying", paidBy: "agent", payer: agent.address });
+          onStep("check", { status: "done", detail: "Altana wallet; limits enforced on-chain" });
+          for (const id of ["fx", "approve", "swap"] as const) onStep(id, { status: "skipped", detail: "Paid from cNGN balance" });
+          onStep("transfer", { status: "active", detail: "Agent session key signing" });
+          try {
+            const { payWithAltana } = await import("@/lib/altana.ts");
+            const hash = await payWithAltana(business.id, order.chosen.supplierWallet, order.amount);
+            onStep("transfer", { status: "done", hash });
+            const paid = await store.updateOrder(order.id, { status: "paid", paymentTxHash: hash, paidAt: new Date().toISOString(), error: "" });
+            const spent = fromKobo(toKobo(agent.spent) + toKobo(order.amount));
+            setBusiness(await store.saveBusiness({ ...business, agent: { ...agent, spent } }));
+            return paid;
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            onStep("transfer", { status: "error", detail: message });
+            // Submitted but unconfirmed: keep "paying" so it is never paid twice.
+            const unconfirmed = error instanceof PaymentError && error.code === "unconfirmed";
+            await store.updateOrder(order.id, { status: unconfirmed ? "paying" : "failed", error: message });
+            throw error;
+          }
+        }
+
         const signer = by === "agent" ? providerFor(business.agent).signer(business.id, business.agent!) : ownerSigner;
         if (!signer) throw new Error("Connect your wallet to approve this payment.");
 

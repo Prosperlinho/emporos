@@ -18,6 +18,7 @@
     "register": "npm run cli:build && node --env-file-if-exists=.env dist/index.js register"
   },
   "dependencies": {
+    "@altananetwork/sdk": "^1.2.0",
     "@celo/attribution-tags": "0.5.0",
     "@rainbow-me/rainbowkit": "^2.2.11",
     "@neondatabase/serverless": "^1.2.1",

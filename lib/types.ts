@@ -27,6 +27,10 @@ export interface AgentPolicy {
   createdAt: string;
   expiresAt: string;
   revokedAt?: string;
+  /** Altana only: the on-chain session key, its cap period and grant transaction. */
+  sessionPublicKey?: string;
+  period?: "day" | "week";
+  grantTx?: string;
 }
 
 export interface Business {
@@ -35,6 +39,8 @@ export interface Business {
   location: string;
   defaultCurrency: "cNGN";
   ownerWallet?: string;
+  /** The owner's passkey-secured Altana smart wallet, once created. */
+  altanaWallet?: string;
   /** ERC-8004 agent ID (uint256 as decimal string). */
   agentId?: string;
   agentRegistrationTx?: string;

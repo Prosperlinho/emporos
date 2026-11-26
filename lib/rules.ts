@@ -31,6 +31,16 @@ export function spentInPeriod(orders: Order[], rules: SpendingRules, now: Date):
     .reduce((total, order) => total + toKobo(order.amount), 0n);
 }
 
+/** Agent spend since the start of the current UTC day, or UTC week (Monday), matching Altana's fixed periods. */
+export function spentSinceUtc(orders: Order[], period: "day" | "week", now: Date): bigint {
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  if (period === "week") start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));
+  return orders
+    .filter((order) => SPENT_STATUSES.has(order.status) && order.paidBy === "agent")
+    .filter((order) => new Date(order.paidAt ?? order.createdAt).getTime() >= start.getTime())
+    .reduce((total, order) => total + toKobo(order.amount), 0n);
+}
+
 export function agentPolicyActive(policy: AgentPolicy | undefined, now: Date): boolean {
   return Boolean(policy && !policy.revokedAt && new Date(policy.expiresAt).getTime() > now.getTime());
 }
@@ -64,9 +74,15 @@ export function checkRules(args: {
   if (!agent || !agentPolicyActive(agent, now)) {
     violations.push(agent?.revokedAt ? "the agent wallet was revoked" : agent ? "the agent session key has expired" : "no agent wallet is set up");
   } else {
-    const remaining = toKobo(agent.spendCap) - toKobo(agent.spent);
+    // Altana caps reset each UTC day/week (enforced on-chain); the local key's cap is a lifetime total.
+    const used =
+      agent.provider === "altana" && agent.period
+        ? spentSinceUtc(orders, agent.period, now)
+        : toKobo(agent.spent);
+    const remaining = toKobo(agent.spendCap) - used;
     if (amount > remaining) {
-      violations.push(`agent wallet has ${formatNaira(remaining < 0n ? 0n : remaining)} left of its ${formatNaira(agent.spendCap)} cap`);
+      const per = agent.provider === "altana" && agent.period ? ` per ${agent.period}` : "";
+      violations.push(`agent wallet has ${formatNaira(remaining < 0n ? 0n : remaining)} left of its ${formatNaira(agent.spendCap)}${per} cap`);
     }
     const wallet = quote.supplierWallet.toLowerCase();
     if (!wallet || !agent.allowlist.some((address) => address.toLowerCase() === wallet)) {

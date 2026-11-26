@@ -29,12 +29,16 @@ const AgentSchema = z.object({
   createdAt: z.string().max(40),
   expiresAt: z.string().max(40),
   revokedAt: z.string().max(40).optional(),
+  sessionPublicKey: z.string().regex(/^0x[0-9a-fA-F]{2,600}$/).optional(),
+  period: z.enum(["day", "week"]).optional(),
+  grantTx: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
 });
 
 const BusinessSchema = z.object({
   name: z.string().trim().min(1).max(120),
   location: z.string().trim().max(120),
   ownerWallet: address.optional(),
+  altanaWallet: address.optional(),
   agentId: z.string().regex(/^\d{1,78}$/).optional(),
   agentRegistrationTx: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
   rules: RulesSchema,
