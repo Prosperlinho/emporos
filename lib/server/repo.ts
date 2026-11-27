@@ -348,3 +348,18 @@ export async function listPublicAgents(): Promise<PublicAgent[]> {
     };
   });
 }
+
+/** The registered agent whose owner or agent wallet is `wallet` (for the ERC-8004 document). */
+export async function findAgentByWallet(wallet: string): Promise<{ agentId: string; registry?: string; name: string; location: string } | null> {
+  const sql = await db();
+  const w = wallet.toLowerCase();
+  const [row] = await sql`
+    select doc from businesses
+    where doc ? 'agentId' and (
+      lower(doc->>'ownerWallet') = ${w} or lower(doc->>'altanaWallet') = ${w} or lower(doc->'agent'->>'address') = ${w}
+    )
+    order by updated_at desc limit 1`;
+  if (!row) return null;
+  const doc = row.doc as Business;
+  return { agentId: doc.agentId!, ...(doc.agentRegistry ? { registry: doc.agentRegistry } : {}), name: doc.name, location: doc.location };
+}

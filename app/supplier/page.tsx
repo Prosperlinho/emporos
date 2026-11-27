@@ -20,6 +20,7 @@ export default function SupplierPortal() {
   const [form, setForm] = useState(emptyProduct);
   const [editing, setEditing] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ text: string; error?: boolean } | null>(null);
+  const [creatingPayout, setCreatingPayout] = useState(false);
 
   const needsLogin = mode === "live" && !user;
 
@@ -38,6 +39,22 @@ export default function SupplierPortal() {
   useEffect(() => {
     if (current) setProfile({ name: current.name, location: current.location, walletAddress: current.walletAddress, contact: current.contact ?? "" });
   }, [current]);
+
+  /** A fingerprint-protected payout account, so suppliers don't need to know what a wallet is. */
+  async function createPayout() {
+    setCreatingPayout(true);
+    setMsg({ text: "Follow your phone's fingerprint or Face ID prompt…" });
+    try {
+      const { setUpAltanaWallet } = await import("@/lib/altana.ts");
+      const walletAddress = await setUpAltanaWallet();
+      setProfile((p) => ({ ...p, walletAddress }));
+      setMsg({ text: "Payout account created. Save your profile to keep it." });
+    } catch (e) {
+      setMsg({ text: errorText(e), error: true });
+    } finally {
+      setCreatingPayout(false);
+    }
+  }
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -109,7 +126,7 @@ export default function SupplierPortal() {
       <main className="shell">
         <section className="page-head">
           <h1>Sell to shops</h1>
-          <p>List stock, price and delivery. Get paid in cNGN.</p>
+          <p>List what you sell, your price and how fast you deliver. Shops order through Emporos and you get paid in naira, straight away.</p>
         </section>
 
         {needsLogin ? (
@@ -140,7 +157,25 @@ export default function SupplierPortal() {
                   <label className="field"><span>Business name</span><input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required /></label>
                   <label className="field"><span>Location</span><input value={profile.location} onChange={(e) => setProfile({ ...profile, location: e.target.value })} placeholder="Lagos" /></label>
                 </div>
-                <label className="field"><span>cNGN payout wallet (Celo)</span><input className="mono" value={profile.walletAddress} onChange={(e) => setProfile({ ...profile, walletAddress: e.target.value.trim() })} placeholder="0x…" /></label>
+                {profile.walletAddress ? (
+                  <label className="field">
+                    <span>Where you get paid</span>
+                    <input className="mono" value={profile.walletAddress} onChange={(e) => setProfile({ ...profile, walletAddress: e.target.value.trim() })} />
+                  </label>
+                ) : (
+                  <div className="field">
+                    <span>Where you get paid</span>
+                    {mode === "live" ? (
+                      <button type="button" className="btn block" disabled={creatingPayout} onClick={() => void createPayout()}>
+                        {creatingPayout ? "One moment…" : "Create my payout account (fingerprint / Face ID)"}
+                      </button>
+                    ) : null}
+                    <details className="tech">
+                      <summary>I already have a Celo wallet</summary>
+                      <input className="mono" style={{ marginTop: 8 }} value={profile.walletAddress} onChange={(e) => setProfile({ ...profile, walletAddress: e.target.value.trim() })} placeholder="0x…" />
+                    </details>
+                  </div>
+                )}
                 <label className="field"><span>Contact</span><input value={profile.contact} onChange={(e) => setProfile({ ...profile, contact: e.target.value })} placeholder="Phone or email for buyers" /></label>
                 <button className="btn primary block">Save profile</button>
                 <p className="small muted">Payments to a wrong address can't be reversed.</p>
