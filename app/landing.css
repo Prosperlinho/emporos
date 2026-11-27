@@ -197,3 +197,34 @@
 .lx-agent dd { margin: 0; text-align: right; color: var(--ink); }
 .lx-agent dd a { border-bottom: 1px solid var(--hair); }
 .lx-agent dd small { color: var(--muted-2); }
+
+/* Docs ------------------------------------------------------------------------ */
+.lx-docs { display: grid; gap: 40px; max-width: 1120px; margin: 0 auto; padding: 32px clamp(16px, 5vw, 48px) 100px; }
+@media (min-width: 900px) { .lx-docs { grid-template-columns: 220px 1fr; gap: 64px; } }
+.lx-toc { display: none; }
+@media (min-width: 900px) {
+  .lx-toc { position: sticky; top: 24px; align-self: start; display: grid; gap: 2px; }
+  .lx-toc span { margin-bottom: 10px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
+  .lx-toc a { padding: 7px 12px; border-radius: 10px; font-size: 14px; color: var(--muted); }
+  .lx-toc a:hover { background: var(--soft); color: var(--ink); }
+}
+.lx-doc { min-width: 0; max-width: 720px; }
+.lx-doc h1 { margin: 0 0 12px; font-size: clamp(34px, 4.2vw, 51px); line-height: 1.1; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); }
+.lx-doc-lead { margin: 0 0 24px; font-size: 17px; line-height: 1.55; color: var(--muted); }
+.lx-doc-section { padding: 36px 0 8px; border-top: 1px solid var(--hair); scroll-margin-top: 24px; }
+.lx-doc-section h2 { margin: 0 0 14px; font-size: 26px; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); }
+.lx-doc-section h3 { margin: 22px 0 8px; font-size: 17px; font-weight: 500; color: var(--ink); }
+.lx-doc p, .lx-doc li { font-size: 15.5px; line-height: 1.65; color: var(--muted); }
+.lx-doc p { margin: 0 0 12px; }
+.lx-doc ol, .lx-doc ul { margin: 0 0 14px; padding-left: 22px; }
+.lx-doc li { margin: 4px 0; }
+.lx-doc b { color: var(--ink); font-weight: 500; }
+.lx-doc a { color: var(--ink); border-bottom: 1px solid var(--hair); }
+.lx-doc a:hover { border-color: var(--ink); }
+.lx-doc code { padding: 2px 6px; border-radius: 6px; background: var(--soft); font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 13px; color: var(--ink); overflow-wrap: anywhere; }
+.lx-code { margin: 0 0 14px; padding: 16px 18px; border-radius: 18px; background: #0b0b0c; overflow-x: auto; }
+.lx-code code { padding: 0; background: none; color: #e8e8ed; font-size: 13px; line-height: 1.6; white-space: pre; overflow-wrap: normal; }
+.lx-table { width: 100%; margin: 4px 0 16px; border-collapse: collapse; font-size: 14.5px; }
+.lx-table th, .lx-table td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--hair); text-align: left; vertical-align: top; color: var(--muted); }
+.lx-table th { color: var(--ink); font-weight: 500; }
+.lx-table td:first-child { color: var(--ink); white-space: nowrap; }

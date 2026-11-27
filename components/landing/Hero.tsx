@@ -92,6 +92,7 @@ export function Hero() {
             <a href="#how">Shops</a>
             <Link href="/supplier">Suppliers</Link>
             <Link href="/agents">Agents</Link>
+            <Link href="/docs">Docs</Link>
           </div>
           <div className="lx-nav-right">
             <Link href="/login" className="lx-link">Sign in</Link>

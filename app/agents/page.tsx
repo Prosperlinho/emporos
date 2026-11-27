@@ -54,6 +54,7 @@ export default async function AgentsPage() {
         <nav>
           <Link href="/">Home</Link>
           <Link href="/supplier">Suppliers</Link>
+          <Link href="/docs">Docs</Link>
         </nav>
       </footer>
     </div>

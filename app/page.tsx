@@ -20,6 +20,7 @@ export default function Landing() {
         <nav>
           <Link href="/supplier">Suppliers</Link>
           <Link href="/agents">Agents</Link>
+          <Link href="/docs">Docs</Link>
           <Link href="/login">Sign in</Link>
         </nav>
       </footer>
