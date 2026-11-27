@@ -49,9 +49,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               <span className="dot" /> Sample
             </span>
           ) : (
-            address && <Balances address={address} compact />
+            (business?.altanaWallet || address) && (
+              <Link href="/app/add-money" title="Your Emporos balance">
+                <Balances address={(business?.altanaWallet ?? address) as `0x${string}`} compact />
+              </Link>
+            )
           )}
-          <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
+          {/* Crypto-wallet users only; fingerprint users never need this. */}
+          {(user?.wallet || address || (mode === "live" && !business?.altanaWallet && !user)) && (
+            <ConnectButton accountStatus="avatar" chainStatus="icon" showBalance={false} />
+          )}
         </div>
       </header>
       <nav className="bottom-nav" aria-label="App">

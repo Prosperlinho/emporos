@@ -37,7 +37,7 @@ function requireCngn() {
 
 function friendly(error: unknown): Error {
   const message = error instanceof Error ? error.message : String(error);
-  if (/NotAllowed|abort|cancel/i.test(message)) return new Error("Passkey prompt was cancelled.");
+  if (/NotAllowed|abort|cancel/i.test(message)) return new Error("Cancelled. Tap the button to try again.");
   return new Error(message.slice(0, 400));
 }
 
@@ -45,7 +45,7 @@ function friendly(error: unknown): Error {
 export async function setUpAltanaWallet(existing?: string): Promise<`0x${string}`> {
   try {
     const c = await client();
-    const wallet = existing ? await c.recoverFromPasskey() : await c.createPasskeyWallet({ name: "Emporos" });
+    const wallet = existing ? await c.recoverFromPasskey() : await c.createPasskeyWallet({ name: "Emporos balance" });
     return getAddress(wallet.address);
   } catch (error) {
     throw friendly(error);
@@ -150,3 +150,56 @@ export async function revokeAltanaSession(businessId: string, policy: AgentPolic
   }
 }
 
+
+/** The owner's admin handle, unlocked with their fingerprint / Face ID. */
+async function unlockAdmin(walletAddress: string) {
+  const c = await client();
+  const admin = await c.recoverFromPasskey();
+  if (admin.address.toLowerCase() !== walletAddress.toLowerCase()) {
+    throw new Error("This fingerprint belongs to a different Emporos balance.");
+  }
+  return { c, admin };
+}
+
+/**
+ * Register the agent's public ID (ERC-8004) from the Altana wallet. Passkey wallets are not
+ * registered automatically, so this asks once. Never throws for "already registered".
+ */
+export async function registerAltanaAgentId(
+  walletAddress: string,
+  identity: { name: string; description: string; endpoint: string },
+): Promise<{ agentId: string; registry: string; transactionHash?: string } | null> {
+  try {
+    const { c, admin } = await unlockAdmin(walletAddress);
+    const outcome = await c.registerAgentIdentity({ wallet: admin, signer: admin.signer, identity, feeToken: USDT_ADDRESS });
+    if (outcome.status === "registered") {
+      return { agentId: outcome.agentId, registry: outcome.registry, ...(outcome.transactionHash ? { transactionHash: outcome.transactionHash } : {}) };
+    }
+    if (outcome.status === "skipped" && outcome.reason === "already-registered") return null;
+    throw new Error(outcome.status === "failed" ? outcome.reason : `Agent ID was not created (${outcome.reason}).`);
+  } catch (error) {
+    throw friendly(error);
+  }
+}
+
+/** Owner-approved payment from the Emporos balance, confirmed with fingerprint / Face ID. */
+export async function payAsOwnerWithAltana(walletAddress: string, recipient: string, amountNaira: string): Promise<Hex> {
+  const cngn = requireCngn();
+  let result;
+  try {
+    const { c, admin } = await unlockAdmin(walletAddress);
+    const amount = koboToTokenUnits(toKobo(amountNaira), CNGN_DECIMALS);
+    result = await c.execute({
+      wallet: admin,
+      signer: admin.signer,
+      feeToken: [USDT_ADDRESS, cngn],
+      calls: [{ to: cngn, value: 0n, data: encodeFunctionData({ abi: erc20Abi, functionName: "transfer", args: [getAddress(recipient), amount] }) }],
+    });
+  } catch (error) {
+    const e = friendly(error);
+    throw new PaymentError(/cancel/i.test(e.message) ? "rejected" : "unknown", e.message);
+  }
+  if (result.status === "FAILED") throw new PaymentError("reverted", "The payment failed. Nothing was sent.", result.transactionHash);
+  if (!result.transactionHash) throw new PaymentError("unconfirmed", "Payment sent but not confirmed yet. Check your orders before trying again.");
+  return result.transactionHash;
+}

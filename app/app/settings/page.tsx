@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useApp } from "@/components/AppContext.tsx";
@@ -145,6 +146,55 @@ export default function SettingsPage() {
     }
   }
 
+  /** One tap: lock the weekly limit on-chain, then get the shop's public agent ID. */
+  async function turnOnAutoPay() {
+    if (!business?.altanaWallet) return say("agent", "Create your Emporos balance first.", true);
+    const allowlist = suppliers
+      .filter((s) => business.rules.approvedSupplierIds.includes(s.id) && s.walletAddress)
+      .map((s) => s.walletAddress as `0x${string}`);
+    setBusy(true);
+    try {
+      say("agent", "Confirm with your fingerprint or Face ID (1 of 2)…");
+      const altana = await import("@/lib/altana.ts");
+      const agentPolicy = await altana.grantAltanaSession(business.id, business.altanaWallet as `0x${string}`, {
+        spendCap: business.rules.periodCap,
+        period: business.rules.period === "daily" ? "day" : "week",
+        expiresAt: new Date(Date.now() + 90 * 86_400_000).toISOString(),
+        allowlist,
+      });
+      let next: Business = await store.saveBusiness({ ...business, agent: agentPolicy });
+      setBusiness(next);
+      if (!next.agentId) {
+        say("agent", "Auto-pay is on. Now confirm once more to get your agent ID (2 of 2)…");
+        try {
+          const registered = await altana.registerAltanaAgentId(business.altanaWallet, {
+            name: `${business.name} (Emporos)`,
+            description: `Restocking agent for ${business.name}${business.location ? `, ${business.location}` : ""}. Pays suppliers in cNGN within limits set by the owner.`,
+            endpoint: `${window.location.origin}/agents`,
+          });
+          if (registered) {
+            next = await store.saveBusiness({
+              ...next,
+              agentId: registered.agentId,
+              agentRegistry: registered.registry as `0x${string}`,
+              ...(registered.transactionHash ? { agentRegistrationTx: registered.transactionHash } : {}),
+              listed: next.listed ?? true,
+            });
+            setBusiness(next);
+          }
+        } catch (e) {
+          say("agent", `Auto-pay is on, but the agent ID didn't go through: ${errorText(e)} You can retry under Agent ID.`, true);
+          return;
+        }
+      }
+      say("agent", "All set. Emporos will pay your trusted suppliers on its own, up to your limit.");
+    } catch (e) {
+      say("agent", errorText(e), true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function createAltanaWallet() {
     if (!business) return say("agent", "Save your business profile first.", true);
     setBusy(true);
@@ -153,7 +203,7 @@ export default function SettingsPage() {
       const { setUpAltanaWallet } = await import("@/lib/altana.ts");
       const altanaWallet = await setUpAltanaWallet();
       setBusiness(await store.saveBusiness({ ...business, altanaWallet }));
-      say("agent", "Altana wallet created. Fund it, then activate the agent.");
+      say("agent", "Your Emporos balance is ready. Add money, then turn on auto-pay.");
     } catch (e) {
       say("agent", errorText(e), true);
     } finally {
@@ -168,7 +218,7 @@ export default function SettingsPage() {
       const { setUpAltanaWallet } = await import("@/lib/altana.ts");
       const altanaWallet = await setUpAltanaWallet("recover");
       setBusiness(await store.saveBusiness({ ...business, altanaWallet }));
-      say("agent", "Altana wallet found.");
+      say("agent", "Found your Emporos balance.");
     } catch (e) {
       say("agent", errorText(e), true);
     } finally {
@@ -181,6 +231,25 @@ export default function SettingsPage() {
     setBusy(true);
     try {
       if (mode === "demo") throw new Error("ERC-8004 registration is a real mainnet transaction, so it's off with sample data. Enter an existing ID below instead.");
+      if (business.altanaWallet && !ownerSigner) {
+        say("identity", "Confirm with your fingerprint or Face ID…");
+        const { registerAltanaAgentId } = await import("@/lib/altana.ts");
+        const registered = await registerAltanaAgentId(business.altanaWallet, {
+          name: `${business.name} (Emporos)`,
+          description: `Restocking agent for ${business.name}${business.location ? `, ${business.location}` : ""}. Pays suppliers in cNGN within limits set by the owner.`,
+          endpoint: `${window.location.origin}/agents`,
+        });
+        if (!registered) throw new Error("Your Emporos balance already has an agent ID. Enter it below to link it.");
+        setBusiness(await store.saveBusiness({
+          ...business,
+          agentId: registered.agentId,
+          agentRegistry: registered.registry as `0x${string}`,
+          ...(registered.transactionHash ? { agentRegistrationTx: registered.transactionHash } : {}),
+          listed: listOnRegister,
+        }));
+        say("identity", `Your agent ID is #${registered.agentId}.`);
+        return;
+      }
       if (!ownerSigner || !publicClient) throw new Error("Connect your wallet to register.");
       const wallet = business.agent && !business.agent.revokedAt ? business.agent.address : ownerSigner.account.address;
       const uri = `${window.location.origin}/api/agent-registration?${new URLSearchParams({ wallet, name: `Emporos agent for ${business.name}` })}`;
@@ -252,7 +321,7 @@ export default function SettingsPage() {
       <section className="panel" id="agent">
         <div className="row between">
           <h2>Auto-pay</h2>
-          {agent && <span className={`badge ${active ? "green" : "red"}`}><span className="dot" />{active ? "Active" : agent.revokedAt ? "Revoked" : "Expired"}</span>}
+          {agent && <span className={`badge ${active ? "green" : "red"}`}><span className="dot" />{active ? "On" : "Off"}</span>}
         </div>
         {agent && !agent.revokedAt ? (
           <>
@@ -288,9 +357,29 @@ export default function SettingsPage() {
             <button className="btn danger block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void revokeAgent()}>Turn off auto-pay</button>
             
           </>
-        ) : (
+        ) : mode === "live" && !business?.altanaWallet ? (
           <>
-            <p className="sub">Let Emporos pay trusted suppliers on its own, up to your limit.</p>
+            <p className="sub">First, create your Emporos balance. This is where your shop&apos;s money for supplies lives. It&apos;s protected by your fingerprint or Face ID.</p>
+            <button className="btn primary block" disabled={busy || !business} onClick={() => void createAltanaWallet()}>Create my Emporos balance</button>
+            <button className="link-btn small" style={{ marginTop: 8 }} disabled={busy || !business} onClick={() => void recoverAltanaWallet()}>I already have one</button>
+          </>
+        ) : mode === "live" ? (
+          <>
+            <p className="sub">
+              Let Emporos pay your trusted suppliers on its own, up to {formatNaira(business!.rules.periodCap)} a {business!.rules.period === "daily" ? "day" : "week"}. Anything more, it asks you first.
+            </p>
+            <Balances address={business!.altanaWallet as `0x${string}`} />
+            <p className="small muted" style={{ margin: "8px 0 12px" }}>
+              Add money first if your balance is empty. <Link href="/app/add-money">Add money →</Link>
+            </p>
+            <button className="btn primary block" disabled={busy} onClick={() => void turnOnAutoPay()}>Turn on auto-pay</button>
+            <p className="small muted" style={{ marginTop: 8 }}>You&apos;ll confirm twice with your fingerprint: once to lock in the limit, once to get your shop&apos;s public agent ID.</p>
+          </>
+        ) : null}
+        {!(agent && !agent.revokedAt) && (
+          <details className="tech">
+            <summary>{mode === "live" ? "Advanced options" : "Set up sample auto-pay"}</summary>
+            <div style={{ marginTop: 12 }}>
             <div className="stack">
               {mode === "live" && (
                 <label className="field">
@@ -340,7 +429,8 @@ export default function SettingsPage() {
                 </>
               )}
             </div>
-          </>
+            </div>
+          </details>
         )}
         <Note k="agent" />
       </section>

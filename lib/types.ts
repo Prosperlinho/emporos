@@ -44,6 +44,8 @@ export interface Business {
   /** ERC-8004 agent ID (uint256 as decimal string). */
   agentId?: string;
   agentRegistrationTx?: string;
+  /** ERC-8004 registry the agent ID lives in, when not the default. */
+  agentRegistry?: string;
   /** Opted in to the public agent directory (/agents). */
   listed?: boolean;
   /** Set when the owner saves their spending rules (setup step 2). */

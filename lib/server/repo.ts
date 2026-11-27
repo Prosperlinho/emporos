@@ -41,6 +41,7 @@ const BusinessSchema = z.object({
   altanaWallet: address.optional(),
   agentId: z.string().regex(/^\d{1,78}$/).optional(),
   agentRegistrationTx: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
+  agentRegistry: address.optional(),
   listed: z.boolean().optional(),
   rulesSavedAt: z.string().max(40).optional(),
   rules: RulesSchema,

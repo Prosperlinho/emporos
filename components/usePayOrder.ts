@@ -64,6 +64,27 @@ export function usePayOrder() {
           }
         }
 
+        // Owner approval from the Emporos balance: confirmed with fingerprint / Face ID.
+        if (by === "owner" && business.altanaWallet && !ownerSigner) {
+          const wallet = business.altanaWallet;
+          await store.updateOrder(order.id, { status: "paying", paidBy: "owner", payer: wallet });
+          onStep("check", { status: "done", detail: "Paying from your Emporos balance" });
+          for (const id of ["fx", "approve", "swap"] as const) onStep(id, { status: "skipped" });
+          onStep("transfer", { status: "active", detail: "Confirm with your fingerprint or Face ID" });
+          try {
+            const { payAsOwnerWithAltana } = await import("@/lib/altana.ts");
+            const hash = await payAsOwnerWithAltana(wallet, order.chosen.supplierWallet, order.amount);
+            onStep("transfer", { status: "done", hash });
+            return await store.updateOrder(order.id, { status: "paid", paymentTxHash: hash, paidAt: new Date().toISOString(), error: "" });
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            onStep("transfer", { status: "error", detail: message });
+            const code = error instanceof PaymentError ? error.code : "unknown";
+            await store.updateOrder(order.id, { status: code === "unconfirmed" ? "paying" : code === "rejected" ? "awaiting_approval" : "failed", error: message });
+            throw error;
+          }
+        }
+
         const signer = by === "agent" ? providerFor(business.agent).signer(business.id, business.agent!) : ownerSigner;
         if (!signer) throw new Error("Connect your wallet to approve this payment.");
 
@@ -141,5 +162,6 @@ export function usePayOrder() {
     [business, mode, onStep, ownerSigner, publicClient, queryClient, setBusiness, store],
   );
 
-  return { pay, steps, running, ownerConnected: Boolean(ownerSigner) };
+  // The owner can approve with a connected wallet, or with fingerprint from their Emporos balance.
+  return { pay, steps, running, ownerConnected: Boolean(ownerSigner || (mode === "live" && business?.altanaWallet)) };
 }

@@ -19,8 +19,8 @@ export function Balances({ address, compact }: { address: `0x${string}` | undefi
   const cngn = data.cngn === null ? "set cNGN address" : `₦${fmt(data.cngn, data.cngnDecimals ?? 18)}`;
   if (compact) {
     return (
-      <span className="badge green" title="Wallet balances on Celo mainnet">
-        {fmt(data.usdt, 6)} USD₮ · {cngn}
+      <span className="badge green" title={`Fee credit: ${fmt(data.usdt, 6)}`}>
+        {cngn}
       </span>
     );
   }

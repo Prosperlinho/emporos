@@ -183,3 +183,8 @@ details.more-ways { border-top: 1px solid var(--line); padding-top: 12px; }
 details.more-ways summary { cursor: pointer; color: var(--muted); font-size: 14px; }
 details.tech { margin-top: 12px; }
 details.tech summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+/* Add money */
+.add-money { display: grid; justify-items: center; gap: 14px; }
+.add-money img { border-radius: 14px; background: #fff; padding: 8px; }
+.add-address { width: 100%; padding: 12px; border: 1px solid var(--line-strong); border-radius: 12px; text-align: center; font-size: 13px; }

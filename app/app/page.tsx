@@ -30,7 +30,7 @@ const FIELD_LABEL: Record<keyof PurchaseRequest, string> = {
 const AUTO_PAY_SECONDS = 5;
 
 export default function AgentPage() {
-  const { mode, store, business } = useApp();
+  const { mode, store, business, setBusiness } = useApp();
   const { pay, steps, running, ownerConnected } = usePayOrder();
 
   const [text, setText] = useState("");
@@ -127,6 +127,24 @@ export default function AgentPage() {
     timer.current = null;
     setCountdown(null);
     if (order) setOrder(await store.updateOrder(order.id, { status: "awaiting_approval" }));
+  }
+
+  /** Mark the supplier just paid as trusted, so Emporos can pay them on its own next time. */
+  async function trustSupplier() {
+    if (!business || !order) return;
+    const wallet = order.chosen.supplierWallet;
+    const agent = business.agent && wallet && !business.agent.allowlist.some((a) => a.toLowerCase() === wallet.toLowerCase())
+      ? { ...business.agent, allowlist: [...business.agent.allowlist, wallet as `0x${string}`] }
+      : business.agent;
+    try {
+      setBusiness(await store.saveBusiness({
+        ...business,
+        rules: { ...business.rules, approvedSupplierIds: [...new Set([...business.rules.approvedSupplierIds, order.chosen.supplierId])] },
+        ...(agent ? { agent } : {}),
+      }));
+    } catch (e) {
+      setError(errorText(e));
+    }
   }
 
   async function runPayment(target: Order, by: "agent" | "owner") {
@@ -283,6 +301,11 @@ export default function AgentPage() {
                 {order.simulated ? " (Sample, no real payment.)" : ""}
               </p>
               <StepList steps={steps} simulated={order.simulated} />
+              {order.paidBy === "owner" && business && !business.rules.approvedSupplierIds.includes(order.chosen.supplierId) && (
+                <button className="btn block" type="button" style={{ marginTop: 14 }} onClick={() => void trustSupplier()}>
+                  Trust {order.chosen.supplierName} for automatic payments
+                </button>
+              )}
               <div className="row" style={{ marginTop: 14 }}>
                 <Link className="btn primary" href={`/app/orders/${order.id}`}>View receipt</Link>
                 <button className="btn" type="button" onClick={() => { setText(""); setFields(null); reset(); }}>New request</button>
