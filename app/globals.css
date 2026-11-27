@@ -169,3 +169,17 @@ table.simple th { color: var(--muted); font-weight: 600; }
 .setup-steps li.done .setup-icon { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .setup-go { margin-left: auto; font-size: 13px; font-weight: 600; }
 section[id] { scroll-margin-top: 120px; }
+
+/* Start (onboarding) */
+.start { max-width: 480px; padding-top: 32px; }
+.start .timeline { margin: 22px 0; }
+.start-card { display: grid; gap: 14px; }
+.start-card h1 { margin: 0; font-size: clamp(24px, 6vw, 30px); font-weight: 600; letter-spacing: -0.8px; line-height: 1.15; }
+.start-card > p { margin: 0; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice-item { min-height: 56px; border: 1px solid var(--line-strong); border-radius: 14px; background: rgba(255, 255, 255, 0.03); font-size: 17px; font-weight: 600; }
+.choice-item.on { border-color: var(--text); background: rgba(255, 255, 255, 0.1); }
+details.more-ways { border-top: 1px solid var(--line); padding-top: 12px; }
+details.more-ways summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+details.tech { margin-top: 12px; }
+details.tech summary { cursor: pointer; color: var(--muted); font-size: 13px; }

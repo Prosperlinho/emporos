@@ -71,6 +71,27 @@ export async function expectedNonce(): Promise<string | null> {
   return unsign<{ nonce: string }>((await cookies()).get(NONCE_COOKIE)?.value)?.nonce ?? null;
 }
 
+const PASSKEY_COOKIE = "emporos_passkey";
+export interface PasskeyChallenge {
+  challenge: string;
+  kind: "register" | "login";
+  /** Registration only: the WebAuthn user handle (base64url) for the new account. */
+  userHandle?: string;
+}
+
+/** Bind a WebAuthn challenge to this browser for 5 minutes. */
+export async function storePasskeyChallenge(value: PasskeyChallenge): Promise<void> {
+  (await cookies()).set(PASSKEY_COOKIE, sign({ ...value, exp: Date.now() + 5 * 60_000 }), cookieOptions(300));
+}
+
+/** Read and clear the pending challenge (single use). */
+export async function takePasskeyChallenge(kind: PasskeyChallenge["kind"]): Promise<PasskeyChallenge | null> {
+  const jar = await cookies();
+  const value = unsign<PasskeyChallenge>(jar.get(PASSKEY_COOKIE)?.value);
+  jar.delete(PASSKEY_COOKIE);
+  return value && value.kind === kind ? value : null;
+}
+
 export interface SessionUser {
   id: string;
   email?: string;

@@ -61,6 +61,16 @@ const SCHEMA = [
      expires_at timestamptz not null,
      sent_at timestamptz not null default now()
    )`,
+  `create table if not exists passkeys (
+     id text primary key,
+     user_id uuid not null references users (id) on delete cascade,
+     public_key text not null,
+     counter bigint not null default 0,
+     transports text[] not null default '{}',
+     created_at timestamptz not null default now(),
+     last_used_at timestamptz
+   )`,
+  `create index if not exists passkeys_user_idx on passkeys (user_id)`,
 ];
 
 let client: NeonQueryFunction<false, false> | null = null;

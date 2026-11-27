@@ -95,7 +95,7 @@ export function Hero() {
           </div>
           <div className="lx-nav-right">
             <Link href="/login" className="lx-link">Sign in</Link>
-            <Link href="/login" className="lx-pill lx-pill-sm">Get started</Link>
+            <Link href="/start" className="lx-pill lx-pill-sm">Get started</Link>
           </div>
         </nav>
 
@@ -137,7 +137,7 @@ export function Hero() {
         <div className="lx-name">
           <h2>Emporos <span>Agent</span></h2>
           <p>The restocking agent that buys right<br />and pays suppliers in naira</p>
-          <Link href="/login" className="lx-pill">Get started</Link>
+          <Link href="/start" className="lx-pill">Get started</Link>
           <Link href="/app?demo=1" className="lx-ghost">Try with sample data</Link>
         </div>
       </div>

@@ -11,14 +11,14 @@ import { Balances } from "@/components/Balances.tsx";
 import { resetDemo } from "@/lib/data/demo-store.ts";
 
 const NAV = [
-  { href: "/app", label: "Agent", icon: "✦" },
+  { href: "/app", label: "Buy", icon: "✦" },
   { href: "/app/orders", label: "Orders", icon: "☰" },
   { href: "/app/suppliers", label: "Suppliers", icon: "⌂" },
-  { href: "/app/settings", label: "Settings", icon: "⚙" },
+  { href: "/app/settings", label: "Account", icon: "⚙" },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { ready, mode, user, setMode } = useApp();
+  const { ready, mode, user, setMode, business, businessLoaded } = useApp();
   const { address } = useAccount();
   const pathname = usePathname();
   const router = useRouter();
@@ -31,7 +31,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       return;
     }
     if (mode === "live" && !user) router.replace("/login");
-  }, [ready, mode, user, router, setMode, pathname]);
+    else if (mode === "live" && businessLoaded && !business) router.replace("/start");
+  }, [ready, mode, user, router, setMode, pathname, business, businessLoaded]);
 
   const active = (href: string) => (href === "/app" ? pathname === "/app" : pathname.startsWith(href));
 

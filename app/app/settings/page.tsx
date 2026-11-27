@@ -203,12 +203,12 @@ export default function SettingsPage() {
   return (
     <>
       <section className="page-head">
-        <h1>Settings</h1>
+        <h1>Account</h1>
         
       </section>
 
       <section className="panel" id="profile">
-        <h2>Business profile</h2>
+        <h2>Your shop</h2>
         <form className="stack" onSubmit={(e) => void saveProfile(e)} style={{ marginTop: 10 }}>
           <label className="field"><span>Business name</span><input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required /></label>
           <label className="field"><span>Location</span><input value={profile.location} onChange={(e) => setProfile({ ...profile, location: e.target.value })} placeholder="Lagos" /></label>
@@ -226,8 +226,8 @@ export default function SettingsPage() {
       </section>
 
       <section className="panel" id="rules">
-        <h2>Spending rules</h2>
-        <p className="sub">Inside these, the agent pays. Outside, you approve.</p>
+        <h2>Spending limit</h2>
+        <p className="sub">Emporos pays on its own up to these amounts. Anything more, it asks you first.</p>
         <form className="stack" onSubmit={(e) => void saveRules(e)}>
           <div className="grid-2">
             <label className="field"><span>Max per order (₦)</span><input inputMode="numeric" value={rules.maxPerOrder} onChange={(e) => setRules({ ...rules, maxPerOrder: e.target.value.replace(/[\u20A6,\s]/g, "") })} /></label>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
           <label className="field"><span>{rules.period === "daily" ? "Daily" : "Weekly"} cap (₦)</span><input inputMode="numeric" value={rules.periodCap} onChange={(e) => setRules({ ...rules, periodCap: e.target.value.replace(/[\u20A6,\s]/g, "") })} /></label>
           <label className="check">
             <input type="checkbox" checked={rules.requireApprovedSupplier} onChange={(e) => setRules({ ...rules, requireApprovedSupplier: e.target.checked })} />
-            Only auto-pay approved suppliers ({rules.approvedSupplierIds.length} approved)
+            Only pay trusted suppliers on its own ({rules.approvedSupplierIds.length} trusted)
           </label>
           <button className="btn primary block" disabled={busy || !business}>Save rules</button>
         </form>
@@ -251,18 +251,18 @@ export default function SettingsPage() {
 
       <section className="panel" id="agent">
         <div className="row between">
-          <h2>Agent wallet</h2>
+          <h2>Auto-pay</h2>
           {agent && <span className={`badge ${active ? "green" : "red"}`}><span className="dot" />{active ? "Active" : agent.revokedAt ? "Revoked" : "Expired"}</span>}
         </div>
         {agent && !agent.revokedAt ? (
           <>
             <dl className="kv" style={{ marginTop: 10 }}>
-              <dt>Address</dt>
+              <dt>Account</dt>
               <dd className="mono">{mode === "demo" ? `${shortAddress(agent.address)} (sample)` : <a href={addressUrl(agent.address)} target="_blank" rel="noreferrer">{shortAddress(agent.address)} ↗</a>}</dd>
-              <dt>Type</dt><dd>{agent.provider === "altana" ? "Altana" : "Session key (this browser)"}</dd>
-              <dt>Spend cap</dt><dd>{formatNaira(agent.spent)} of {formatNaira(agent.spendCap)} used</dd>
-              <dt>Allowlist</dt><dd>{agent.allowlist.length} supplier wallet(s)</dd>
-              <dt>Expires</dt><dd>{new Date(agent.expiresAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</dd>
+              <dt>Protection</dt><dd>{agent.provider === "altana" ? "Limits locked on Celo" : "Limits checked by Emporos"}</dd>
+              <dt>Spent</dt><dd>{formatNaira(agent.spent)} of {formatNaira(agent.spendCap)} used</dd>
+              <dt>Can pay</dt><dd>{agent.allowlist.length} trusted supplier(s)</dd>
+              <dt>Renew by</dt><dd>{new Date(agent.expiresAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</dd>
             </dl>
             {mode === "live" && (
               <>
@@ -285,12 +285,12 @@ export default function SettingsPage() {
                 )}
               </>
             )}
-            <button className="btn danger block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void revokeAgent()}>Revoke agent</button>
+            <button className="btn danger block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void revokeAgent()}>Turn off auto-pay</button>
             
           </>
         ) : (
           <>
-            <p className="sub">Pays only allowlisted suppliers, up to its cap, until it expires.</p>
+            <p className="sub">Let Emporos pay trusted suppliers on its own, up to your limit.</p>
             <div className="stack">
               {mode === "live" && (
                 <label className="field">
@@ -346,7 +346,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="panel" id="identity">
-        <h2>Agent identity (ERC-8004)</h2>
+        <h2>Agent ID</h2>
         {business?.agentId ? (
           <>
             <dl className="kv" style={{ marginTop: 10 }}>
@@ -368,14 +368,14 @@ export default function SettingsPage() {
           </>
         ) : (
           <>
-            <p className="sub">List the agent in Celo&apos;s Identity Registry. Your wallet owns it.</p>
+            <p className="sub">A public ID for your shop&apos;s agent, so suppliers can check it&apos;s really you. Registered on Celo (ERC-8004).</p>
             {mode === "live" && (
               <label className="check">
                 <input type="checkbox" checked={listOnRegister} onChange={(e) => setListOnRegister(e.target.checked)} />
                 Also show my shop name and city in the public agent directory
               </label>
             )}
-            <button className="btn primary block" disabled={busy || !business} onClick={() => void register()}>Register agent on Celo</button>
+            <button className="btn primary block" disabled={busy || !business} onClick={() => void register()}>Get my agent ID</button>
             <div className="row" style={{ marginTop: 10 }}>
               <input placeholder="Already registered? Agent ID" inputMode="numeric" value={manualAgentId} onChange={(e) => setManualAgentId(e.target.value.replace(/\D/g, ""))} style={{ flex: 1 }} />
               <button className="btn" disabled={!manualAgentId || !business} onClick={() => void save({ ...business!, agentId: manualAgentId, listed: mode === "live" && listOnRegister }, "identity", `Saved agent #${manualAgentId}.`)}>Save</button>
@@ -388,7 +388,7 @@ export default function SettingsPage() {
       {user && (
         <section className="panel">
           <h2>Account</h2>
-          <p className="small muted">Signed in as {user.email ?? (user.wallet ? shortAddress(user.wallet) : user.id)}</p>
+          <p className="small muted">Signed in {user.email ? `as ${user.email}` : user.wallet ? `with wallet ${shortAddress(user.wallet)}` : "with fingerprint / Face ID"}</p>
           <button className="btn block" onClick={() => void signOut().then(() => (window.location.href = "/"))}>Sign out</button>
         </section>
       )}

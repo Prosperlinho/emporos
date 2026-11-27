@@ -87,10 +87,10 @@ export function SetupChecklist({ steps }: { steps: SetupStep[] }) {
   return (
     <section className="panel accent setup">
       <div className="row between">
-        <h2>Finish setting up</h2>
+        <h2>Almost ready</h2>
         <span className="badge">{done} of {steps.length}</span>
       </div>
-      <p className="sub">You can search and compare now. Payments unlock when all four steps are done.</p>
+      <p className="sub">You can already search and compare suppliers. Payments switch on when these are done.</p>
       <div className="timeline">{steps.map((s) => <span key={s.id} className={s.done ? "on" : ""} />)}</div>
       <ol className="setup-steps">
         {steps.map((s) => (

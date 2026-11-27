@@ -12,10 +12,10 @@ export interface SetupStep {
 /** The four steps a live shop completes before any payment can go out. */
 export function setupSteps(business: Business | null, now = new Date()): SetupStep[] {
   return [
-    { id: "profile", label: "Your shop", hint: "Name and location", done: Boolean(business), href: "/app/settings#profile" },
-    { id: "rules", label: "Spending rules", hint: "Per-order limit and cap", done: Boolean(business?.rulesSavedAt), href: "/app/settings#rules" },
-    { id: "agent", label: "Agent wallet", hint: "Create, fund, activate", done: agentPolicyActive(business?.agent, now), href: "/app/settings#agent" },
-    { id: "identity", label: "Register on Celo", hint: "Agent ID + directory", done: Boolean(business?.agentId), href: "/app/settings#identity" },
+    { id: "profile", label: "Your shop", hint: "Name and area", done: Boolean(business), href: "/app/settings#profile" },
+    { id: "rules", label: "Weekly limit", hint: "How much Emporos can spend without asking", done: Boolean(business?.rulesSavedAt), href: "/app/settings#rules" },
+    { id: "agent", label: "Turn on auto-pay", hint: "Create your Emporos balance and switch on auto-pay", done: agentPolicyActive(business?.agent, now), href: "/app/settings#agent" },
+    { id: "identity", label: "Get your agent ID", hint: "So suppliers can look your shop up", done: Boolean(business?.agentId), href: "/app/settings#identity" },
   ];
 }
 

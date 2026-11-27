@@ -91,26 +91,34 @@ export default function ReceiptPage() {
       <section className="panel">
         <h2>Payment</h2>
         <dl className="kv" style={{ marginTop: 10 }}>
-          <dt>Paid by</dt><dd>{o.paidBy === "agent" ? "Agent wallet (auto)" : o.paidBy === "owner" ? "You (approved)" : "Not paid"}</dd>
-          {o.payer && <><dt>From</dt><dd className="mono">{o.simulated ? o.payer : <a href={addressUrl(o.payer)} target="_blank" rel="noreferrer">{shortAddress(o.payer)} ↗</a>}</dd></>}
-          <dt>To</dt><dd className="mono">{o.chosen.supplierWallet ? shortAddress(o.chosen.supplierWallet) : "—"}</dd>
-          <dt>cNGN transfer</dt><dd><TxLink hash={o.paymentTxHash} simulated={o.simulated} /></dd>
-          {o.fx && (
-            <>
-              <dt>FX rate</dt><dd>1 USD₮ = {o.fx.rate} cNGN ({o.fx.provider})</dd>
-              <dt>Swapped</dt><dd>{o.fx.sellAmountUsdt} USD₮ → {o.fx.buyAmountCngn} cNGN</dd>
-              {o.fx.approveTxHash && <><dt>Approve tx</dt><dd><TxLink hash={o.fx.approveTxHash} simulated={o.simulated} /></dd></>}
-              {o.fx.swapTxHash && <><dt>Swap tx</dt><dd><TxLink hash={o.fx.swapTxHash} simulated={o.simulated} /></dd></>}
-            </>
-          )}
+          <dt>Paid by</dt><dd>{o.paidBy === "agent" ? "Emporos, automatically" : o.paidBy === "owner" ? "You approved it" : "Not paid yet"}</dd>
+          <dt>To</dt><dd>{o.chosen.supplierName}</dd>
+          <dt>Proof of payment</dt><dd><TxLink hash={o.paymentTxHash} simulated={o.simulated} label="View" /></dd>
         </dl>
+        <details className="tech">
+          <summary>Technical details</summary>
+          <dl className="kv" style={{ marginTop: 10 }}>
+            {o.payer && <><dt>From</dt><dd className="mono">{o.simulated ? o.payer : <a href={addressUrl(o.payer)} target="_blank" rel="noreferrer">{shortAddress(o.payer)} ↗</a>}</dd></>}
+            <dt>Supplier wallet</dt><dd className="mono">{o.chosen.supplierWallet ? shortAddress(o.chosen.supplierWallet) : "—"}</dd>
+            <dt>Paid in</dt><dd>cNGN on Celo</dd>
+            <dt>Transaction</dt><dd><TxLink hash={o.paymentTxHash} simulated={o.simulated} /></dd>
+            {o.fx && (
+              <>
+                <dt>Exchange rate</dt><dd>1 USD₮ = {o.fx.rate} cNGN ({o.fx.provider})</dd>
+                <dt>Exchanged</dt><dd>{o.fx.sellAmountUsdt} USD₮ → {o.fx.buyAmountCngn} cNGN</dd>
+                {o.fx.approveTxHash && <><dt>Approve tx</dt><dd><TxLink hash={o.fx.approveTxHash} simulated={o.simulated} /></dd></>}
+                {o.fx.swapTxHash && <><dt>Exchange tx</dt><dd><TxLink hash={o.fx.swapTxHash} simulated={o.simulated} /></dd></>}
+              </>
+            )}
+          </dl>
+        </details>
         {o.status === "paying" && o.paymentTxHash && !o.simulated && (
           <button className="btn block" style={{ marginTop: 12 }} disabled={busy} onClick={() => void recheck()}>Re-check on Celo</button>
         )}
       </section>
 
       <section className="panel">
-        <h2>Why {o.chosen.supplierName}</h2>
+        <h2>Why Emporos chose {o.chosen.supplierName}</h2>
         <ul className="reasons">{o.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
         <h3 className="small muted" style={{ margin: "14px 0 6px" }}>Rule check</h3>
         {o.ruleCheck.withinRules ? (

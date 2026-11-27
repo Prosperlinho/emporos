@@ -20,11 +20,11 @@ export interface PayStep {
 
 export function initialSteps(): PayStep[] {
   return [
-    { id: "check", label: "Check balances", status: "pending" },
-    { id: "fx", label: "Get USD₮ → cNGN quote", status: "pending" },
-    { id: "approve", label: "Allow swap to use USD₮", status: "pending" },
-    { id: "swap", label: "Swap USD₮ → cNGN", status: "pending" },
-    { id: "transfer", label: "Pay supplier in cNGN", status: "pending" },
+    { id: "check", label: "Checking your balance", status: "pending" },
+    { id: "fx", label: "Getting today's rate", status: "pending" },
+    { id: "approve", label: "Preparing the exchange", status: "pending" },
+    { id: "swap", label: "Changing dollars to naira", status: "pending" },
+    { id: "transfer", label: "Paying the supplier", status: "pending" },
   ];
 }
 

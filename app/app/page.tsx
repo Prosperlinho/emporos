@@ -279,7 +279,7 @@ export default function AgentPage() {
             <>
               <h2>Paid {formatNaira(order.amount)} to {order.chosen.supplierName}</h2>
               <p className="sub">
-                {order.paidBy === "agent" ? "Auto-paid within your rules." : "Approved by you."}
+                {order.paidBy === "agent" ? "Paid automatically, within your limit." : "You approved this payment."}
                 {order.simulated ? " (Sample, no real payment.)" : ""}
               </p>
               <StepList steps={steps} simulated={order.simulated} />
@@ -291,18 +291,18 @@ export default function AgentPage() {
           ) : running || order.status === "paying" ? (
             <>
               <h2>Paying {order.chosen.supplierName}…</h2>
-              <p className="sub">{order.paidBy === "owner" ? "Confirm in your wallet." : "Agent wallet signing."}</p>
+              <p className="sub">{order.paidBy === "owner" ? "Confirm with your fingerprint or wallet." : "This takes a few seconds."}</p>
               <StepList steps={steps} simulated={mode === "demo"} />
             </>
           ) : ruleCheck.withinRules && countdown !== null ? (
             <>
-              <h2>Auto-paying in {countdown}s</h2>
+              <h2>Paying automatically in {countdown}s</h2>
               <p className="sub">{formatNaira(order.amount)} cNGN to {order.chosen.supplierName}.</p>
               <button className="btn block" type="button" onClick={() => void cancelAutoPay()}>Stop</button>
             </>
           ) : (
             <>
-              <h2>{ruleCheck.withinRules ? "Ready to pay" : "Needs your approval"}</h2>
+              <h2>{ruleCheck.withinRules ? "Ready to pay" : "Emporos needs your OK"}</h2>
               {ruleCheck.violations.length > 0 && (
                 <ul className="reasons">
                   {ruleCheck.violations.map((v) => <li key={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</li>)}

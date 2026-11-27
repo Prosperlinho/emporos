@@ -32,7 +32,7 @@ export default async function AgentsPage() {
         <Link href="/" className="lx-logo" aria-label="Emporos home"><LogoMark size={30} /></Link>
         <div className="lx-nav-right">
           <Link href="/login" className="lx-link">Sign in</Link>
-          <Link href="/login" className="lx-pill lx-pill-sm">Register your agent</Link>
+          <Link href="/start" className="lx-pill lx-pill-sm">Get started</Link>
         </div>
       </header>
 

@@ -30,6 +30,8 @@ interface AppState {
   emailLogin: boolean;
   user: SessionUser | null;
   business: Business | null;
+  /** The business lookup for the current user has finished at least once. */
+  businessLoaded: boolean;
   setMode(mode: StoreMode): void;
   refreshUser(): Promise<SessionUser | null>;
   refreshBusiness(): Promise<Business | null>;
@@ -46,6 +48,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [emailLogin, setEmailLogin] = useState(false);
   const [user, setUser] = useState<SessionUser | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
+  const [businessLoaded, setBusinessLoaded] = useState(false);
 
   const store = useMemo<Store>(() => (mode === "live" && configured ? httpStore : demoStore), [mode, configured]);
 
@@ -84,6 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setBusiness(null);
       return null;
     }
+    setBusinessLoaded(false);
     try {
       const next = await store.getBusiness();
       setBusiness(next);
@@ -91,6 +95,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch {
       setBusiness(null);
       return null;
+    } finally {
+      setBusinessLoaded(true);
     }
   }, [effectiveMode, store, user]);
 
@@ -117,6 +123,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     emailLogin,
     user,
     business,
+    businessLoaded,
     setMode,
     refreshUser,
     refreshBusiness,

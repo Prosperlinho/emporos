@@ -72,6 +72,13 @@ export default function LoginPage() {
       await refreshUser();
     });
 
+  const fingerprintLogin = () =>
+    run(async () => {
+      const { signInWithPasskey } = await import("@/lib/passkey-client.ts");
+      await signInWithPasskey();
+      await refreshUser();
+    });
+
   const sendCode = (e: React.FormEvent) => {
     e.preventDefault();
     void run(async () => {
@@ -102,12 +109,20 @@ export default function LoginPage() {
           </>
         ) : (
           <div className="stack">
+            <button className="btn primary block" type="button" disabled={busy} onClick={() => void fingerprintLogin()}>
+              {busy ? "One moment…" : "Sign in with fingerprint or Face ID"}
+            </button>
+            <Link className="btn block" href="/start">New here? Create your shop account</Link>
+
+            <details className="more-ways">
+              <summary>Other ways to sign in</summary>
+              <div className="stack" style={{ marginTop: 12 }}>
             {isConnected ? (
-              <button className="btn primary block" type="button" disabled={busy} onClick={() => void walletLogin()}>
-                {busy ? "Check your wallet…" : "Sign in with wallet"}
+              <button className="btn block" type="button" disabled={busy} onClick={() => void walletLogin()}>
+                {busy ? "Check your wallet…" : "Sign in with my crypto wallet"}
               </button>
             ) : (
-              <div className="row" style={{ justifyContent: "center" }}><ConnectButton label="Connect wallet" /></div>
+              <div className="row" style={{ justifyContent: "center" }}><ConnectButton label="Use a crypto wallet" /></div>
             )}
 
             {emailLogin && (
@@ -133,6 +148,8 @@ export default function LoginPage() {
                 )}
               </>
             )}
+              </div>
+            </details>
           </div>
         )}
         {error && <div className="notice error" style={{ marginTop: 12 }}>{error}</div>}

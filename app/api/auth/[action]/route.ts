@@ -11,6 +11,7 @@ import { celo } from "viem/chains";
 import { parseSiweMessage } from "viem/siwe";
 import { db, dbConfigured } from "@/lib/server/db.ts";
 import { handle, readJson } from "@/lib/server/http.ts";
+import * as passkeys from "@/lib/server/passkeys.ts";
 import { currentUser, endSession, expectedNonce, hashSecret, HttpError, issueNonce, startSession } from "@/lib/server/session.ts";
 
 export const runtime = "nodejs";
@@ -135,6 +136,24 @@ async function route(action: string, method: string, request: Request) {
       return emailStart(request);
     case "POST email-verify":
       return emailVerify(request);
+    case "POST passkey-register-options": {
+      requireDb();
+      const { name } = (await readJson(request)) as { name?: unknown };
+      return passkeys.registrationOptions(request, typeof name === "string" ? name : "");
+    }
+    case "POST passkey-register": {
+      requireDb();
+      const { response } = (await readJson(request)) as { response?: unknown };
+      return passkeys.finishRegistration(request, response);
+    }
+    case "POST passkey-login-options":
+      requireDb();
+      return passkeys.authenticationOptions(request);
+    case "POST passkey-login": {
+      requireDb();
+      const { response } = (await readJson(request)) as { response?: unknown };
+      return passkeys.finishAuthentication(request, response);
+    }
     case "POST logout":
       await endSession();
       return { ok: true };
